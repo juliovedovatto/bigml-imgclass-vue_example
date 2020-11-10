@@ -23,5 +23,7 @@
   ],
   "typescript.validate.enable": false,
   "tslint.enable":false,
-  "tslint.jsEnable": false
+  "tslint.jsEnable": false,
+
+  "sort-imports.on-save": false
 }
