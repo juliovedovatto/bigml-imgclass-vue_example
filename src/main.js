@@ -3,7 +3,7 @@ import '@/assets/scss/main.scss'
 import * as Integrations from '@sentry/integrations'
 import * as Sentry from '@sentry/browser'
 
-import { API_HOST, APP_VERSION, ENVIRONMENT, SENTRY_DSN } from '@/core/config'
+import { APP_VERSION, ENVIRONMENT, SENTRY_DSN } from '@/core/config'
 
 import App from './App.vue'
 import Vue from 'vue'
