@@ -1,52 +1,39 @@
-<template>
-  <v-app>
-    <v-app-bar app color="primary" dark>
-      <div class="d-flex align-center">
-        <v-img
-          alt="Vuetify Logo"
-          class="shrink mr-2"
-          contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
-          transition="scale-transition"
-          width="40"
-        />
+<template lang="pug">
+  v-app
+    v-app-bar(color="light" app)
+      v-img.shrink(:src="logo" height="50" transition="scale-transition" contain)
 
-        <v-img
-          alt="Vuetify Name"
-          class="shrink mt-1 hidden-sm-and-down"
-          contain
-          min-width="100"
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
-          width="100"
-        />
-      </div>
+    v-main
+      v-container
+        router-view
 
-      <v-spacer></v-spacer>
-
-      <v-btn href="https://github.com/vuetifyjs/vuetify/releases/latest" target="_blank" text>
-        <span class="mr-2">Latest Release</span>
-        <v-icon>mdi-open-in-new</v-icon>
-      </v-btn>
-    </v-app-bar>
-
-    <v-main>
-      <HelloWorld />
-    </v-main>
-  </v-app>
+    v-footer(dark)
+      v-img.shrink(:src="logoFooter" width="45" transition="scale-transition" contain)
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld'
+import Logo from '@/assets/img/bigml.svg'
+import LogoFooter from '@/assets/img/bigml-white.svg'
+import axios from 'axios'
 
 export default {
   name: 'App',
-
-  components: {
-    HelloWorld
+  metaInfo: {
+    title: 'Home',
+    titleTemplate: '%s | BigML'
   },
-
-  data: () => ({
-    //
-  })
+  errorCaptured(error) {
+    if (axios.isCancel(error)) {
+      return false
+    }
+  },
+  computed: {
+    logo() {
+      return Logo
+    },
+    logoFooter() {
+      return LogoFooter
+    }
+  }
 }
 </script>
