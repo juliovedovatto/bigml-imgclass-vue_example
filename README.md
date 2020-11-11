@@ -130,6 +130,65 @@ Webpack takes the dependencies and generates a dependency graph allowing web dev
 * [The vue-cli integration](https://cli.vuejs.org/guide/webpack.html)
 * [API](https://webpack.js.org/api/)
 
+## Project Structure (WIP)
+
+```
+├── dist
+├── node_modules
+├── public
+├── src
+│   ├── assets
+│   │   ├── icon
+│   │   ├── img
+│   │   └── scss
+│   │       ├── abstracts
+│   │       ├── base
+│   │       └── vendor
+│   ├── components
+│   ├── core
+│   │   ├── api
+│   │   ├── config
+│   │   └── helpers
+│   ├── locales
+│   ├── plugins
+│   ├── router
+│   ├── store
+│   │   └── modules
+│   └── views
+├── tests
+│   ├── e2e
+│   └── unit
+└── tmp
+```
+
+* **dist**: The `dist` directory is meant to be served by an HTTP server.
+* **node_modules**: The `node_modules` folder is used by the NPM (Node Package Manager) to installs the packages. It's not possible to see packages locally, the packages are only visibles  inside the Docker container.
+* **public** folder used to serve static files, a folder that is visible when running application.
+* **src**: The `src` directory organize the source code of the application.
+  * **assets**: The `assets` folder is where we save the assets imported into the application.
+    * **icon**: The SVG icons.
+    * **img**: The JPG and PNG images. It's important compress the images to not increase the size of the project.
+    * **scss**: The SCSS files. It's managed by the SASS.
+       * **abstracts**: The abstracts/ folder gathers all Sass tools and helpers used across the project. Every global variable, function, mixin and placeholder should be put in here.
+       * **base**: The base/ folder holds what we might call the boilerplate code for the project. In there, you might find the reset file, some typographic rules, and probably a stylesheet defining some standard styles for commonly used HTML elements.
+       * **vendor**: The vendor folder containing all the CSS files from external libraries and frameworks.
+  * **components**: All the components of the project.
+  * **core**: The reusable functions of the system, be DRY!.
+      * **api**: The client implementation of API.
+      * **config**: The application configuration, usually it will be used to keep environment variables.
+      * **helpers**: Helper functions to use across application.
+  * **locales**: Holds the internationalization, the locales files. It's managed by the vue-i18n package.
+  * **plugins**: The `plugins` folder is used to store bootstrap files of some packages, such vue-boostrap, vue-meta, vue-i18n.
+  * **router**: Contains all the routes of the project and its configurations. It's managed by the vue-router.
+  * **store**: Here we can find the Vuex instance and its configurations.
+      * **modules**: The `modules` directory organize each module of the Vuex and it contains the modules's mutations, getters, setters and states.
+  * **views**: The view components that are used in the routes. This components are separated in a different directory because they represent entires pages.
+* **tests**: All the tests of the application, such E2E, Unit, etc.
+    * **e2e**: Holds the End to End tests. It's managed by the `Cypress` and `Jest`.
+    * **unit**: Holds the unit tests. It's managed by the `Jest`.
+* **tmp** folder to store temporary files
+
+---
 
 ## Project setup
 ```
