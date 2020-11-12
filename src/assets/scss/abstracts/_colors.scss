@@ -1,0 +1,21 @@
+$primary: #82A11D;
+$primary-light: #A8C910;
+$primary-lighter: #D6EE6A;
+
+$secondary: #2B3337;
+$secondary-light: #454957;
+$secondary-lighter: #7B8290;
+
+$brand-blue: #8C98BF;
+$brand-light-grey: #F7F7F7;
+
+:export {
+  primary: $primary;
+  primaryLight: $primary-light;
+  primaryLighten: $primary-lighter;
+  secondary: $secondary;
+  secondaryLight: $secondary-light;
+  secondaryLighten: $secondary-lighter;
+  brandBlue: $brand-blue;
+  brandLightGrey: $brand-light-grey;
+}
