@@ -15,14 +15,16 @@ ADD /.git /code/
 
 WORKDIR /code
 
-RUN apk add --no-cache git && npm --logevel=error install
+RUN apk add --no-cache git \
+  && npm i -g npm@^7 \
+  && npm install --logevel error
 
 # development stage
 FROM builder as development
 
 EXPOSE 8080
 
-CMD npm install --silent; npm run serve
+CMD ["/usr/local/bin/npm install --silent && /usr/local/bin/npm run serve"]
 
 # production builder stage
 FROM builder as builder-production
@@ -39,4 +41,4 @@ COPY --from=builder-production /code/dist/ /usr/share/nginx/html/
 
 EXPOSE 80
 
-CMD nginx -g daemon off;
+CMD ["nginx", "-g", "daemon off;"]
