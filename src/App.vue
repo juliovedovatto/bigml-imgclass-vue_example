@@ -1,14 +1,15 @@
 <template lang="pug">
   v-app
-    v-app-bar(color="light" app)
-      v-img.shrink(:src="logo" height="50" transition="scale-transition" contain)
+    // TODO: Separate logged content
+    //- v-app-bar(color="light" app)
+    //-   v-img.shrink(:src="logo" height="50" transition="scale-transition" contain)
 
     v-main
-      v-container
+      v-container(fill-height)
         router-view
 
-    v-footer(dark)
-      v-img.shrink(:src="logoFooter" width="45" transition="scale-transition" contain)
+    //- v-footer(dark)
+    //-   v-img.shrink(:src="logoFooter" width="45" transition="scale-transition" contain)
 </template>
 
 <script>

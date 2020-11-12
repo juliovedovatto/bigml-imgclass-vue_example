@@ -1,9 +1,9 @@
-import Home from '@/views/Home.vue'
+import Login from '@/views/Auth/Login.vue'
 
 export default [
   {
     path: '/',
-    name: 'Home',
-    component: Home
+    name: 'Login',
+    component: Login
   }
 ]
