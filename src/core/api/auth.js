@@ -10,6 +10,12 @@ class Auth extends API {
 
     return data
   }
+
+  async refreshTokens(refresh) {
+    const { data = null } = await this.request.post('/api/token/refresh/', { refresh })
+
+    return data
+  }
 }
 
 export default new Auth()

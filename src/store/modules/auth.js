@@ -22,21 +22,36 @@ export default {
     },
     toggleUserLoggedIn({ commit }, state) {
       commit('setUserLoggedIn', state)
+    },
+    async refreshTokens({ commit }) {
+      const expiresAt = Number(await retrieveFromCookieStore('expiresAt'))
+      const refreshToken = await retrieveFromCookieStore('refreshToken')
+
+      if (!refreshToken || expiresAt > Date.now()) {
+        return
+      }
+
+      const { access } = await Auth.refreshTokens(refreshToken)
+
+      commit('setTokens', { access })
     }
   },
   mutations: {
-    setTokens(state, { access, refresh }) {
+    setTokens(state, { access, refresh = null }) {
       const expiresInSecs = Math.floor(Number(REFRESH_TOKENS_INTERVAL))
       const expiresAt = new Date().getTime() + expiresInSecs * 500
 
       addToCookieStore('accessToken', access, expiresInSecs)
-      addToCookieStore('refreshToken', refresh, expiresInSecs)
       addToCookieStore('expiresAt', expiresAt, expiresInSecs)
 
       state.isUserLoggedIn = true
       state.accessToken = access
-      state.refreshToken = refresh
       state.expiresAt = expiresInSecs
+
+      if (refresh) {
+        addToCookieStore('refreshToken', refresh, expiresInSecs)
+        state.refreshToken = refresh
+      }
     },
     clearTokens(state) {
       signOut()

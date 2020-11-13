@@ -6,8 +6,9 @@ import { deleteFromCookieStore, retrieveFromCookieStore } from '@/core/helpers/s
  */
 export async function checkAuthentication() {
   const authToken = await retrieveFromCookieStore('accessToken')
+  const expiresAt = Number(await retrieveFromCookieStore('expiresAt'))
 
-  return Boolean(authToken)
+  return Boolean(authToken) && expiresAt > Date.now()
 }
 
 /**

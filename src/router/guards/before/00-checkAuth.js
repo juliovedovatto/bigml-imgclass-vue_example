@@ -1,4 +1,4 @@
-import { checkAuthentication, signOut } from '@/core/helpers/auth'
+import { checkAuthentication } from '@/core/helpers/auth'
 import store from '@/store'
 
 /**
@@ -24,7 +24,7 @@ export default async function checkAuth(to, _from, next) {
 
   // if user is not authenticated and route requires auth, force clear User store
   // and redirect to login page
-  signOut()
+  store.dispatch('auth/logout')
   const query = {}
   if (to.fullPath && to.fullPath !== '/') {
     query.next = to.fullPath

@@ -14,6 +14,7 @@
 <script>
 import Logo from '@/assets/img/bigml.svg'
 import LogoFooter from '@/assets/img/bigml-white.svg'
+import { REFRESH_TOKENS_INTERVAL } from '@/core/config'
 import axios from 'axios'
 import { mapState } from 'vuex'
 
@@ -23,6 +24,9 @@ export default {
     title: 'Home',
     titleTemplate: '%s | BigML'
   },
+  data: () => ({
+    authPolling: null
+  }),
   computed: {
     ...mapState('auth', ['isUserLoggedIn']),
     logo() {
@@ -35,6 +39,14 @@ export default {
   errorCaptured(error) {
     if (axios.isCancel(error)) {
       return false
+    }
+  },
+  created() {
+    this.authPolling = setInterval(this.refreshTokens, REFRESH_TOKENS_INTERVAL * 1000)
+  },
+  methods: {
+    refreshTokens() {
+      this.$store.dispatch('auth/refreshTokens')
     }
   }
 }
