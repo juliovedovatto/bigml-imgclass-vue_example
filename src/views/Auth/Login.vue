@@ -35,7 +35,7 @@ export default {
       username: 'easyeasy',
       apiKey: '316c82771ce938c045e603d9182b27b285d41bf8',
       error: null,
-      loginFormLoading: false
+      isLoginFormLoading: false
     }
   },
   computed: {
