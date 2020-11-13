@@ -17,7 +17,6 @@ export default class API {
       const token = await retrieveFromCookieStore('accessToken')
 
       config.headers.Authorization = (token && `Bearer ${token}`) || ''
-      config.withCredentials = true
 
       return config
     })
