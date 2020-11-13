@@ -15,7 +15,7 @@ ADD /.git /code/
 
 WORKDIR /code
 
-RUN apk add --no-cache git \
+RUN apk add --no-cache python make g++ git \
   && npm i -g npm@^7 \
   && npm install --logevel error
 
@@ -24,7 +24,7 @@ FROM builder as development
 
 EXPOSE 8080
 
-CMD ["/usr/local/bin/npm install --silent && /usr/local/bin/npm run serve"]
+CMD ["/usr/local/bin/npm ci --silent && /usr/local/bin/npm run serve"]
 
 # production builder stage
 FROM builder as builder-production
