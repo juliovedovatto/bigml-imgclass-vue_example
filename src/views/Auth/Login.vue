@@ -53,6 +53,8 @@ export default {
 
       try {
         await this.$store.dispatch('auth/login', { username, apiKey })
+
+        this.$router.push({ name: 'home' })
       } catch (err) {
         const { status = null } = err?.response || {}
 

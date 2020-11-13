@@ -9,7 +9,7 @@ export const StoreType = {
 /**
  * Set item to Cookie Storage
  * @param {string} key
- * @param value
+ * @param {*} value
  * @param {number} [expires] - Time in seconds to expire cookie. No value provided, cookie will a session cookie.
  */
 export function addToCookieStore(key, value, expires = null) {
@@ -19,7 +19,7 @@ export function addToCookieStore(key, value, expires = null) {
 /**
  * Set item to Storage. If item exists, it will overwrite it.
  * @param {string} key
- * @param value
+ * @param {*} value
  * @param {string} type (from StoreType const). Defaults to Cookie.
  * @param {number} [expires] - Time in seconds to expire cookie. No value provided, cookie will a session cookie.
  */

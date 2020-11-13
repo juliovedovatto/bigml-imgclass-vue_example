@@ -1,6 +1,7 @@
 import { API_HOST } from '@/core/config'
 import axios from 'axios'
 import { objToParams } from '@/core/helpers/url'
+import { retrieveFromCookieStore } from '@/core/helpers/storage'
 
 export default class API {
   constructor() {
@@ -9,8 +10,8 @@ export default class API {
       paramsSerializer: params => objToParams(params)
     })
 
-    this.request.interceptors.request.use(config => {
-      const token = '' // TODO: retrieve token from auth store
+    this.request.interceptors.request.use(async config => {
+      const token = await retrieveFromCookieStore('accessToken')
 
       config.headers.Authorization = (token && `Bearer ${token}`) || ''
 
