@@ -1,3 +1,12 @@
+<i18n>
+{
+  "en": {
+    "error": {
+      "unauthorized": "The credentials provided are incorrect. Check yout credentials and try again."
+    }
+  }
+}
+</i18n>
 <template lang="pug">
   v-container.container
     v-row(justify="center")
@@ -7,6 +16,8 @@
     login-form(
       :username="username"
       :apiKey="apiKey"
+      :loading="loginFormLoading"
+      @auth:login="handleAuthLogin"
     )
 </template>
 
@@ -21,13 +32,42 @@ export default {
   },
   data() {
     return {
-      username: '',
-      apiKey: ''
+      username: 'easyeasy',
+      apiKey: '316c82771ce938c045e603d9182b27b285d41bf8',
+      error: null,
+      loginFormLoading: false
     }
   },
   computed: {
     logo() {
       return Logo
+    }
+  },
+  methods: {
+    async handleAuthLogin(formData) {
+      this.error = null
+      this.loginFormLoading = true
+
+      const username = formData.get('username')
+      const apiKey = formData.get('apiKey')
+
+      try {
+        await this.$store.dispatch('auth/login', { username, apiKey })
+      } catch (err) {
+        const { status = null } = err?.response || {}
+
+        switch (status) {
+          case 401: // Unautorized
+            this.error = this.$t('error.unauthorized')
+            break
+          default:
+            this.error = this.$t('common.error.general')
+            // TODO: error handling
+            console.error(err)
+        }
+      } finally {
+        this.loginFormLoading = false
+      }
     }
   }
 }

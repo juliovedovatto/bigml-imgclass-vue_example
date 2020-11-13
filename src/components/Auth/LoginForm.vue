@@ -23,29 +23,33 @@
 </i18n>
 
 <template lang="pug">
-  v-form(v-model="isValid")
+  v-form(ref="form" v-model="isValid" @submit.prevent="handleSubmit")
     v-container(fill-height)
       v-row(justify="center")
         v-col(md="4")
           v-text-field(
             :label="$t('fields.username.label')"
             :rules="rules.username"
+            :value="username"
+            name="username"
           )
       v-row(justify="center")
         v-col(md="4")
           v-text-field(
             :label="$t('fields.apiKey.label')"
             :rules="rules.apiKey"
+            :value="apiKey"
+            name="apiKey"
           )
       v-row(justify="center")
         v-col(md="4")
           v-btn.white--text(
+            type="submit"
             width="100%"
             height="48"
             color="primary"
             :disabled="!isValid"
-            :loading="isLoading"
-            @click="simulateLoading"
+            :loading="loading"
           ) {{ $t('actions.login' )}}
 </template>
 
@@ -60,12 +64,15 @@ export default {
     apiKey: {
       type: String,
       default: ''
+    },
+    loading: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
     return {
       isValid: false,
-      isLoading: false,
       rules: {
         username: [value => !!value || this.$t('fields.username.errors.empty')],
         apiKey: [value => !!value || this.$t('fields.apiKey.errors.empty')]
@@ -73,11 +80,9 @@ export default {
     }
   },
   methods: {
-    simulateLoading() {
-      this.isLoading = true
-      setTimeout(() => {
-        this.isLoading = false
-      }, 1000)
+    handleSubmit(event) {
+      const formData = new FormData(event.target)
+      this.$emit('auth:login', formData)
     }
   }
 }

@@ -1,1 +1,1 @@
-// TODO: export API classes
+export { default as Auth } from './auth'

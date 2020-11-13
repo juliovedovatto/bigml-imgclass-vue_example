@@ -1,5 +1,8 @@
 {
   "common": {
-    "projectName": "Image Classifier"
+    "projectName": "Image Classifier",
+    "error": {
+      "general": "An error occurred while processing the request"
+    }
   }
 }

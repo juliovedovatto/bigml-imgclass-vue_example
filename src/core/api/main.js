@@ -1,8 +1,8 @@
 import { API_HOST } from '@/core/config'
 import axios from 'axios'
-import { objToParams } from '@/helpers/url'
+import { objToParams } from '@/core/helpers/url'
 
-class API {
+export default class API {
   constructor() {
     this.request = axios.create({
       baseURL: API_HOST,
@@ -18,5 +18,3 @@ class API {
     })
   }
 }
-
-export default new API()
