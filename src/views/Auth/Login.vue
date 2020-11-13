@@ -49,7 +49,7 @@ export default {
   methods: {
     async handleAuthLogin(formData) {
       this.error = null
-      this.loginFormLoading = true
+      this.isLoginFormLoading = true
 
       const username = formData.get('username')
       const apiKey = formData.get('apiKey')
