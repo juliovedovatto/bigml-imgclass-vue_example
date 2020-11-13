@@ -1,4 +1,4 @@
-import { API_HOST } from '@/core/config'
+import { API_HOST, AUTH_COOKIES } from '@/core/config'
 import axios from 'axios'
 import { objToParams } from '@/core/helpers/url'
 import { retrieveFromCookieStore } from '@/core/helpers/storage'
@@ -14,7 +14,7 @@ export default class API {
     })
 
     this.request.interceptors.request.use(async config => {
-      const token = await retrieveFromCookieStore('accessToken')
+      const token = await retrieveFromCookieStore(AUTH_COOKIES.ACCESS_TOKEN)
 
       config.headers.Authorization = (token && `Bearer ${token}`) || ''
 

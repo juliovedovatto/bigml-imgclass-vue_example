@@ -1,15 +1,15 @@
+import { AUTH_COOKIES, REFRESH_TOKENS_INTERVAL } from '@/core/config'
 import { addToCookieStore, retrieveFromCookieStore } from '@/core/helpers/storage'
 import { Auth } from '@/core/api'
-import { REFRESH_TOKENS_INTERVAL } from '@/core/config'
 import { signOut } from '@/core/helpers/auth'
 
 export default {
   namespaced: true,
   state: {
     isUserLoggedIn: false,
-    accessToken: retrieveFromCookieStore('accessToken') || null,
-    refreshToken: retrieveFromCookieStore('refreshToken') || null,
-    expiresAt: retrieveFromCookieStore('expiresAt') || null
+    accessToken: retrieveFromCookieStore(AUTH_COOKIES.ACCESS_TOKEN) || null,
+    refreshToken: retrieveFromCookieStore(AUTH_COOKIES.REFRESH_TOKEN) || null,
+    expiresAt: retrieveFromCookieStore(AUTH_COOKIES.EXPIRES_AT) || null
   },
   actions: {
     async login({ commit }, payload = {}) {
@@ -25,8 +25,8 @@ export default {
       commit('setUserLoggedIn', state)
     },
     async refreshTokens({ commit }) {
-      const expiresAt = Number(await retrieveFromCookieStore('expiresAt'))
-      const refreshToken = await retrieveFromCookieStore('refreshToken')
+      const expiresAt = Number(await retrieveFromCookieStore(AUTH_COOKIES.ACCESS_TOKEN))
+      const refreshToken = await retrieveFromCookieStore(AUTH_COOKIES.REFRESH_TOKEN)
 
       if (!refreshToken || expiresAt > Date.now()) {
         return
@@ -42,15 +42,15 @@ export default {
       const expiresInSecs = Math.floor(Number(REFRESH_TOKENS_INTERVAL))
       const expiresAt = new Date().getTime() + expiresInSecs * 500
 
-      addToCookieStore('accessToken', access, expiresInSecs)
-      addToCookieStore('expiresAt', expiresAt, expiresInSecs)
+      addToCookieStore(AUTH_COOKIES.ACCESS_TOKEN, access, expiresInSecs)
+      addToCookieStore(AUTH_COOKIES.EXPIRES_AT, expiresAt, expiresInSecs)
 
       state.isUserLoggedIn = true
       state.accessToken = access
       state.expiresAt = expiresInSecs
 
       if (refresh) {
-        addToCookieStore('refreshToken', refresh, expiresInSecs)
+        addToCookieStore(AUTH_COOKIES.REFRESH_TOKEN, refresh, expiresInSecs)
         state.refreshToken = refresh
       }
     },
