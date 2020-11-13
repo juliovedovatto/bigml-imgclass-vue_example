@@ -16,7 +16,7 @@
     login-form(
       :username="username"
       :apiKey="apiKey"
-      :loading="loginFormLoading"
+      :loading="isLoginFormLoading"
       @auth:login="handleAuthLogin"
     )
 </template>
