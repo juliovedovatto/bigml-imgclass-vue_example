@@ -1,8 +1,6 @@
 <template lang="pug"></template>
 
 <script>
-import { signOut } from '@/core/helpers/auth'
-
 export default {
   name: 'Logout',
   created() {
@@ -10,7 +8,7 @@ export default {
   },
   methods: {
     logout() {
-      signOut()
+      this.$store.dispatch('auth/logout')
       this.$router.push({ name: 'auth' })
     }
   }

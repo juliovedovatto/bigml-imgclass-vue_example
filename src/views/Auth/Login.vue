@@ -43,6 +43,9 @@ export default {
       return Logo
     }
   },
+  created() {
+    // TODO: check if user is already logged
+  },
   methods: {
     async handleAuthLogin(formData) {
       this.error = null

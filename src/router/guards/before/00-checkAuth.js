@@ -1,4 +1,5 @@
 import { checkAuthentication, signOut } from '@/core/helpers/auth'
+import store from '@/store'
 
 /**
  * Navigation guard to verify user authentication.
@@ -12,7 +13,12 @@ export default async function checkAuth(to, _from, next) {
   const isAuthenticated = await checkAuthentication()
 
   // check if page requires authentication or check if user is already authenticated (has a token)
-  if (!requiresAuth || isAuthenticated) {
+  if (!requiresAuth) {
+    return next()
+  }
+
+  if (isAuthenticated) {
+    store.dispatch('auth/toggleUserLoggedIn', true)
     return next()
   }
 
