@@ -23,17 +23,17 @@ export default {
     title: 'Home',
     titleTemplate: '%s | BigML'
   },
-  errorCaptured(error) {
-    if (axios.isCancel(error)) {
-      return false
-    }
-  },
   computed: {
     logo() {
       return Logo
     },
     logoFooter() {
       return LogoFooter
+    }
+  },
+  errorCaptured(error) {
+    if (axios.isCancel(error)) {
+      return false
     }
   }
 }
