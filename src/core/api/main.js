@@ -17,6 +17,7 @@ export default class API {
       const token = await retrieveFromCookieStore('accessToken')
 
       config.headers.Authorization = (token && `Bearer ${token}`) || ''
+      config.withCredentials = true
 
       return config
     })
@@ -24,7 +25,7 @@ export default class API {
     this.request.interceptors.response.use(
       response => response,
       async error => {
-        const { status } = error?.response
+        const { status = null } = error?.response || {}
 
         if (status === 401) {
           const { config } = error
