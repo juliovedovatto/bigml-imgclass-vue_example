@@ -2,6 +2,7 @@ import { APP_VERSION, ENVIRONMENT } from './src/core/config'
 
 import GitRevisionPlugin from 'git-revision-webpack-plugin'
 import SentryWebpackPlugin from '@sentry/webpack-plugin'
+import { checkInContainer } from './src/core/helpers/docker'
 
 import path from 'path'
 
@@ -10,6 +11,10 @@ const gitRevisionPlugin = new GitRevisionPlugin()
 
 export default {
   transpileDependencies: ['vuetify'],
+
+  devServer: {
+    progress: !checkInContainer()
+  },
 
   configureWebpack() {
     const config = {

@@ -24,7 +24,7 @@ FROM builder as development
 
 EXPOSE 8080
 
-CMD "/bin/sh -c 'npm ci && npm run serve'"
+CMD "/bin/sh -c 'npm install --no-save && npm run serve'"
 
 # production builder stage
 FROM builder as builder-production
