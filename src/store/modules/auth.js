@@ -13,7 +13,8 @@ export default {
   },
   actions: {
     async login({ commit }, payload = {}) {
-      const { access, refresh } = await Auth.token(payload.username, payload.apiKey)
+      const { username, apiKey } = payload
+      const { access, refresh } = await Auth.token(username, apiKey)
 
       commit('setTokens', { access, refresh })
     },

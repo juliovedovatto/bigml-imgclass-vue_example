@@ -1,5 +1,7 @@
 import { deleteFromCookieStore, retrieveFromCookieStore } from '@/core/helpers/storage'
 
+const RESET_TOKENS = ['accessToken', 'expiresAt', 'refreshToken']
+
 /**
  * Check if there is an active access token in storage.
  * @returns {boolean}
@@ -15,7 +17,7 @@ export async function checkAuthentication() {
  * reset (clear) Authentication Tokens
  */
 export function resetAuth() {
-  ;['accessToken', 'expiresAt', 'refreshToken'].forEach(k => deleteFromCookieStore(k))
+  RESET_TOKENS.forEach(k => deleteFromCookieStore(k))
 }
 
 /**
