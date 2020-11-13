@@ -71,7 +71,7 @@ export default {
             console.error(err)
         }
       } finally {
-        this.loginFormLoading = false
+        this.isLoginFormLoading = false
       }
     }
   }
