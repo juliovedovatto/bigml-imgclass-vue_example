@@ -6,10 +6,23 @@ import { signOut } from '@/core/helpers/auth'
 export default {
   namespaced: true,
   state: {
+    isAuthRequired: false,
+    isAuthVerified: false,
     isUserLoggedIn: false,
     accessToken: null,
     refreshToken: null,
     expiresAt: null
+  },
+  getters: {
+    isAuthRequired(state) {
+      return state.isAuthRequired
+    },
+    isAuthVerified(state) {
+      return state.isAuthVerified
+    },
+    isUserLoggedIn(state) {
+      return state.isUserLoggedIn
+    }
   },
   actions: {
     async init({ state }) {
@@ -17,17 +30,21 @@ export default {
         (state.refreshToken = (await retrieveFromCookieStore(AUTH_COOKIES.REFRESH_TOKEN)) || null),
         (state.expiresAt = (await retrieveFromCookieStore(AUTH_COOKIES.EXPIRES_AT)) || null)
     },
+    requiresAuth({ commit }, payload) {
+      commit('setRequiredAuth', payload)
+    },
     async login({ commit }, payload = {}) {
       const { username, apiKey } = payload
       const { access, refresh } = await Auth.token(username, apiKey)
 
       commit('setTokens', { access, refresh })
+      commit('setAuthVerified', true)
     },
     logout({ commit }) {
       commit('clearTokens')
     },
-    toggleUserLoggedIn({ commit }, state) {
-      commit('setUserLoggedIn', state)
+    async toggleUserLoggedIn({ commit }, payload) {
+      commit('setUserLoggedIn', payload)
     },
     async refreshTokens({ commit }) {
       const expiresAt = Number(await retrieveFromCookieStore(AUTH_COOKIES.ACCESS_TOKEN))
@@ -40,13 +57,15 @@ export default {
       const { access } = await Auth.refreshTokens(refreshToken)
 
       commit('setTokens', { access })
+      commit('setAuthVerified', true)
     },
-    async verify({ state }) {
+    async verify({ state, commit }) {
       if (!state.accessToken) {
         return
       }
 
       await Auth.verifyToken(state.accessToken)
+      commit('setAuthVerified', true)
     }
   },
   mutations: {
@@ -69,12 +88,20 @@ export default {
     clearTokens(state) {
       signOut()
       state.isUserLoggedIn = false
+      state.isAuthVerified = false
+
       state.accessToken = null
       state.refreshToken = null
       state.expiresAt = null
     },
     setUserLoggedIn(state, flag) {
       state.isUserLoggedIn = flag
+    },
+    setRequiredAuth(state, flag) {
+      state.isAuthRequired = flag
+    },
+    setAuthVerified(state, flag) {
+      state.isAuthVerified = flag
     }
   }
 }

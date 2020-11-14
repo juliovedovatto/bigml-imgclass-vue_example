@@ -1,5 +1,5 @@
 <template lang="pug">
-  v-app
+  v-app(v-if="canShowLayout")
     v-app-bar(color="light" app v-if="isUserLoggedIn")
       v-img.shrink(:src="logo" height="50" transition="scale-transition" contain)
 
@@ -28,12 +28,15 @@ export default {
     authPolling: null
   }),
   computed: {
-    ...mapState('auth', ['isUserLoggedIn']),
+    ...mapState('auth', ['isAuthVerified', 'isUserLoggedIn', 'isAuthRequired']),
     logo() {
       return Logo
     },
     logoFooter() {
       return LogoFooter
+    },
+    canShowLayout() {
+      return this.isAuthVerified || !this.isAuthRequired
     }
   },
   errorCaptured(error) {

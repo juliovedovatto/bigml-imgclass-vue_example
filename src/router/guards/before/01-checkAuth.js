@@ -1,6 +1,5 @@
 import { checkAuthentication } from '@/core/helpers/auth'
 import store from '@/store'
-import { t } from '@/core/helpers/i18n'
 
 /**
  * Navigation guard to verify user authentication.
@@ -13,25 +12,16 @@ export default async function checkAuth(to, from, next) {
   const requiresAuth = to.matched.some(m => m.meta.requiresAuth)
   const isAuthenticated = await checkAuthentication()
 
-  await store.dispatch('auth/init')
+  store.dispatch('auth/requiresAuth', requiresAuth)
 
   // check if page requires authentication or check if user is already authenticated (has a token)
   if (!requiresAuth) {
     return next()
   }
 
-  try {
-    if (isAuthenticated) {
-      await store.dispatch('auth/verify')
-      store.dispatch('auth/toggleUserLoggedIn', true)
-      return next()
-    }
-  } catch (err) {
-    const { status = null } = err?.response || {}
-
-    // TODO: show error alert
-    const error = t(status === 401 ? 'common.error.auth.validate-error' : 'common.error.general')
-    console.error(error)
+  if (isAuthenticated) {
+    store.dispatch('auth/toggleUserLoggedIn', true)
+    return next()
   }
 
   // if user is not authenticated and route requires auth, force clear User store
@@ -42,8 +32,5 @@ export default async function checkAuth(to, from, next) {
     query.next = to.fullPath
   }
 
-  // little trick to avoid error case redirected back to login after trying to login
-  if (from.name !== 'auth.login') {
-    next({ name: 'auth', query })
-  }
+  next({ name: 'auth', query })
 }
