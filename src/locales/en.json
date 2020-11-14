@@ -1,5 +1,12 @@
 {
   "common": {
-    "projectName": "Image Classifier"
+    "projectName": "Image Classifier",
+    "error": {
+      "general": "An error occurred while processing the request",
+      "auth": {
+        "not-valid": "You login credentials are no longer valid. Plase sign in again.",
+        "validate-error": "There was an error while verifying credentials. Please sign in again."
+      }
+    }
   }
 }
