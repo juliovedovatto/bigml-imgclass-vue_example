@@ -7,11 +7,16 @@ export default {
   namespaced: true,
   state: {
     isUserLoggedIn: false,
-    accessToken: retrieveFromCookieStore(AUTH_COOKIES.ACCESS_TOKEN) || null,
-    refreshToken: retrieveFromCookieStore(AUTH_COOKIES.REFRESH_TOKEN) || null,
-    expiresAt: retrieveFromCookieStore(AUTH_COOKIES.EXPIRES_AT) || null
+    accessToken: null,
+    refreshToken: null,
+    expiresAt: null
   },
   actions: {
+    async init({ state }) {
+      ;(state.accessToken = (await retrieveFromCookieStore(AUTH_COOKIES.ACCESS_TOKEN)) || null),
+        (state.refreshToken = (await retrieveFromCookieStore(AUTH_COOKIES.REFRESH_TOKEN)) || null),
+        (state.expiresAt = (await retrieveFromCookieStore(AUTH_COOKIES.EXPIRES_AT)) || null)
+    },
     async login({ commit }, payload = {}) {
       const { username, apiKey } = payload
       const { access, refresh } = await Auth.token(username, apiKey)
@@ -35,6 +40,13 @@ export default {
       const { access } = await Auth.refreshTokens(refreshToken)
 
       commit('setTokens', { access })
+    },
+    async verify({ state }) {
+      if (!state.accessToken) {
+        return
+      }
+
+      await Auth.verifyToken(state.accessToken)
     }
   },
   mutations: {

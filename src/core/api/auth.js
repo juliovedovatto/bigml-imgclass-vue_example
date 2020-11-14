@@ -16,6 +16,12 @@ class Auth extends API {
 
     return data
   }
+
+  async verifyToken(token) {
+    const { data = null } = await this.request.post('/api/token/verify/', { token })
+
+    return data
+  }
 }
 
 export default new Auth()

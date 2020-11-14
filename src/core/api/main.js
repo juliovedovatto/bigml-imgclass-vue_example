@@ -1,4 +1,4 @@
-import { API_HOST, AUTH_COOKIES } from '@/core/config'
+import { API_HOST, AUTH_COOKIES, UNAUTHORIZED_WHITELIST } from '@/core/config'
 import axios from 'axios'
 import { objToParams } from '@/core/helpers/url'
 import { retrieveFromCookieStore } from '@/core/helpers/storage'
@@ -23,14 +23,14 @@ export default class API {
 
     this.request.interceptors.response.use(
       response => response,
-      async error => {
-        const { status = null } = error?.response || {}
+      async err => {
+        const { status = null } = err?.response || {}
 
         if (status === 401) {
-          const { config } = error
+          const { config } = err
           const { url, __isRetryRequest } = config
 
-          if (url !== '/api/token/') {
+          if (!UNAUTHORIZED_WHITELIST.includes(url)) {
             if (!__isRetryRequest) {
               await store.dispatch('auth/refreshTokens')
               return setTimeout(() => this.request(config), 300)
@@ -43,7 +43,7 @@ export default class API {
           }
         }
 
-        return Promise.reject(error)
+        return Promise.reject(err)
       }
     )
   }
