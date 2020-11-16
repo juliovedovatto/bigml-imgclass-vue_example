@@ -1,3 +1,12 @@
-export { API_HOST, APP_ID, APP_VERSION, BASE_URL, ENVIRONMENT, SECURE_COOKIE, SENTRY_DSN } from './application'
+export {
+  API_HOST,
+  APP_ID,
+  APP_VERSION,
+  BASE_URL,
+  ENVIRONMENT,
+  SECURE_COOKIE,
+  SENTRY_DSN,
+  STORE_TYPE
+} from './application'
 export { AUTH_COOKIES, REFRESH_TOKENS_INTERVAL, UNAUTHORIZED_WHITELIST } from './auth'
 export { PROJECT_MEDIA_ROOT } from './project'
