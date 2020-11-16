@@ -1,13 +1,13 @@
 <template lang="pug">
   v-app(v-if="canShowLayout")
-    v-app-bar(color="light" app v-if="isUserLoggedIn")
+    v-app-bar(color="light" app v-if="true")
       v-img.shrink(:src="logo" height="50" transition="scale-transition" contain)
 
     v-main
       v-container(fill-height)
         router-view
 
-    v-footer(dark v-if="isUserLoggedIn")
+    v-footer(dark v-if="true")
       v-img.shrink(:src="logoFooter" width="45" transition="scale-transition" contain)
 </template>
 
@@ -36,7 +36,7 @@ export default {
       return LogoFooter
     },
     canShowLayout() {
-      return this.isAuthVerified || !this.isAuthRequired
+      return true ||this.isAuthVerified || !this.isAuthRequired
     }
   },
   errorCaptured(error) {

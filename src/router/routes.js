@@ -5,7 +5,7 @@ export default [
     path: '/',
     name: 'home',
     meta: {
-      requiresAuth: true
+      // requiresAuth: true
     },
     component: Home
   },
