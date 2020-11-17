@@ -1,5 +1,7 @@
-const request = require.context('./request/', false, /.+\.js$/i)
-const response = require.context('./response/', false, /.+\.js$/i)
+import requireContext from 'require-context.macro'
+
+const request = requireContext('./request/', false, /.+\.js$/i)
+const response = requireContext('./response/', false, /.+\.js$/i)
 
 const interceptors = {
   request: request

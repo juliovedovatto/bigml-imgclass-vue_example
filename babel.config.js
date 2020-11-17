@@ -5,11 +5,12 @@ module.exports = {
     '@babel/plugin-proposal-optional-chaining',
     '@babel/plugin-proposal-logical-assignment-operators',
     '@babel/plugin-transform-parameters',
-    'dynamic-import-node'
+    'dynamic-import-node',
+    'macros'
   ],
   env: {
     test: {
-      plugins: ['@babel/plugin-transform-modules-commonjs', 'babel-plugin-transform-require-context']
+      plugins: ['@babel/plugin-transform-modules-commonjs']
     }
   }
 }
