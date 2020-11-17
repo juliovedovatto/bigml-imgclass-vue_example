@@ -19,7 +19,7 @@ describe('@/core/api/project', () => {
 
     projectId = result?.id || null
   })
-  describe('Should list projects', async () => {
+  test('Should list projects', async () => {
     const result = await Project.list()
 
     expect(result).arrayContaining(expect.objectContaining({ id: projectId }))
