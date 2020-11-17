@@ -1,4 +1,5 @@
 import API from './main'
+import { objectToFormData } from '@/core/helpers/form'
 
 class Project extends API {
   constructor() {
@@ -27,6 +28,32 @@ class Project extends API {
 
   async listImages(id) {
     return await this.request.get(`/projects/${id}/images/`)
+  }
+
+  async listImageBundle(id) {
+    return await this.request.get(`/projects/${id}/image-bundles/`)
+  }
+
+  async listImageBundleImages(projectId, id) {
+    return await this.request.get(`/projects/${projectId}/image-bundles/${id}/images`)
+  }
+
+  async getImageBundle(projectId, id) {
+    return await this.request.get(`/projects/${projectId}/image-bundles/${id}`)
+  }
+
+  async createImageBundle(id, data = {}) {
+    const formData = objectToFormData(data)
+
+    return await this.request.post(`/projects/${id}/image-bundles/`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+  }
+
+  async deleteImageBundle(projectId, id) {
+    return await this.request.delete(`/projects/${projectId}/images-bundle/${id}`)
   }
 }
 
