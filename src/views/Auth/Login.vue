@@ -22,6 +22,7 @@
 </template>
 
 <script>
+import { TEST_API_KEY, TEST_API_USER } from '@/core/config'
 import LoginForm from '@/components/Auth/LoginForm'
 import Logo from '@/assets/img/bigml.svg'
 
@@ -32,8 +33,8 @@ export default {
   },
   data() {
     return {
-      username: 'easyeasy',
-      apiKey: '316c82771ce938c045e603d9182b27b285d41bf8',
+      username: '',
+      apiKey: '',
       error: null,
       isLoginFormLoading: false
     }
@@ -45,6 +46,9 @@ export default {
   },
   created() {
     // TODO: check if user is already logged
+
+    this.username = TEST_API_USER
+    this.apiKey = TEST_API_KEY
   },
   methods: {
     async handleAuthLogin(formData) {

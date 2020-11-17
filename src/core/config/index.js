@@ -8,5 +8,5 @@ export {
   SENTRY_DSN,
   STORE_TYPE
 } from './application'
-export { AUTH_COOKIES, REFRESH_TOKENS_INTERVAL, UNAUTHORIZED_WHITELIST } from './auth'
+export { AUTH_COOKIES, REFRESH_TOKENS_INTERVAL, TEST_API_KEY, TEST_API_USER, UNAUTHORIZED_WHITELIST } from './auth'
 export { PROJECT_MEDIA_ROOT } from './project'
