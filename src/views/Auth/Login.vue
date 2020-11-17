@@ -2,7 +2,7 @@
 {
   "en": {
     "error": {
-      "unauthorized": "The credentials provided are incorrect. Check yout credentials and try again."
+      "unauthorized": "The credentials provided are incorrect. Check your credentials and try again."
     }
   }
 }
