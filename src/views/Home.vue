@@ -16,7 +16,9 @@
     "sections": {
       "steps": "Steps",
       "filters": "Filter"
-    }
+    },
+    "uploadDescription": "To start training you model, import and label some images.",
+    "loadingDescription": "Uploading images and training your model"
   }
 }
 </i18n>
@@ -100,7 +102,7 @@
                       class="image"
                     )
               .descriptionContainer(v-if="shouldShowUploadTabDescription")
-                .description To start training you model, import and label some images.
+                .description {{ $t('uploadDescription') }}
               vue-dropzone.drop(
                 v-show="!showLoading && images.length === 0"
                 :options="{ language: { dictDefaultMessage: 'Its me Mario' }, url: 'https://httpbin.org/post' }"
@@ -114,7 +116,7 @@
                 v-if="showLoading"
                 class="d-flex justify-center align-center flex-column"
               )
-                .loadingDescription Uploading images and training your model
+                .loadingDescription {{ $t('loadingDescription') }}
                 v-progress-circular(
                   :value="currentProgress"
                   color="primary"
