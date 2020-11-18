@@ -9,13 +9,10 @@
     "buttons": {
       "newProject": "Create new project",
       "cancel": "Cancel",
-      "uploadAndTrain": "Upload & Train",
-      "checkAccuracy": "Check Accuracy",
+      "label": "Label",
+      "train": "Train",
+      "play": "play",
       "allImages": "All images"
-    },
-    "sections": {
-      "steps": "Steps",
-      "filters": "Filter"
     },
     "uploadDescription": "To start training you model, import and label some images.",
     "loadingDescription": "Uploading images and training your model"
@@ -56,35 +53,60 @@
               class="white--text error"
             ) {{ $t('buttons.cancel') }}
             .sidebarSectionHeader
-              .sidebarTitle {{ $t('sections.steps') }}
               v-btn.sidebarButton(
                 :class="isStepSelected('label')"
                 @click="setCurrentTab('label')"
                 color="#8C98BF"
                 text
-              ) {{ $t('buttons.uploadAndTrain') }}
+              ) {{ $t('buttons.label') }}
               v-btn.sidebarButton(
                 :class="isStepSelected('train')"
                 @click="setCurrentTab('train')"
                 :disabled="!hasImages"
                 color="#8C98BF"
                 text
-              ) {{ $t('buttons.checkAccuracy') }}
-            .sidebarSectionHeader(v-if="hasImages")
-              .sidebarTitle {{ $t('sections.filters') }}
+              ) {{ $t('buttons.train') }}
               v-btn.sidebarButton(
-                :outlined="shouldOutlineButton('all')"
+                :class="isStepSelected('play')"
+                @click="setCurrentTab('play')"
+                :disabled="!hasImages"
+                color="#8C98BF"
+                text
+              ) {{ $t('buttons.play') }}
+            .sidebarSectionHeader(v-if="hasImages")
+              v-btn.sidebarButton(
+                :outlined="currentTab !== 'play' && shouldOutlineButton('all')"
                 @click="setCurrentFilter('all')"
                 color="primary"
+                flat
                 class="white--text"
-              ) {{ $t('buttons.allImages') }}
+                :disabled="currentTab === 'play'"
+              ) 
+                div(style="width: 100%; padding: 4px;")
+                  div {{ $t('buttons.allImages') }}
+                  v-progress-linear(
+                    rounded style="margin-top: 4px;"
+                    value="97"
+                    :color="currentTab !== 'play' && shouldOutlineButton('all') ? 'primary' : 'white'"
+                    height="6"
+                  )
               v-btn.sidebarButton(
                 v-for="img in images"
-                :outlined="shouldOutlineButton(img.label)"
+                :outlined="currentTab !== 'play' && shouldOutlineButton(img.label)"
                 @click="setCurrentFilter(img.label)"
                 color="primary"
                 class="white--text"
-              ) {{ img.label }}
+                :disabled="currentTab === 'play'"
+              )
+                div(style="width: 100%; padding: 4px;")
+                    div {{ img.label }}
+                    v-progress-linear(
+                      rounded
+                      style="margin-top: 4px;"
+                      value="97"
+                      :color="currentTab !== 'play' && shouldOutlineButton(img.label) ? 'primary' : 'white'"
+                      height="6"
+                    )
           v-card.contentCard(outlined)
             .uploadTabContainer(v-show="shouldShowTab('label')")
               div(v-if="hasImages")
@@ -135,7 +157,34 @@
                         max-width="250"
                         max-height="250"
                       )
-                      .accuracy( :style="index % 2 === 0 ? 'background-color: #EF5350;': 'background-color: #A8C910'" ) {{ `${index % 2 === 0 ? '10%' : '50%'}` }}
+                      .accuracy( :style="index % 2 === 0 ? `background: linear-gradient(90deg, rgba(239, 83, 80, 1) 10%, rgba(239, 83, 80, .6) 10%);`: `background: linear-gradient(90deg, rgba(168, 201, 16, 1) 90%, rgba(168, 201, 16, .6) 90%);`" ) {{ `${index % 2 === 0 ? '10%' : '90%'}` }}
+            .accuracyTabContainer(v-show="shouldShowTab('play')")
+              div(style="width: 100%; height: 100%;")
+                div(style="width: 100%; height: 100%;")
+                  v-img.image(
+                    lazy-src
+                    :src="playedImages[0]"
+                    contains
+                    max-width="250"
+                    max-height="250"
+                  )
+                div
+                  v-sheet(max-width="700")
+                    v-slide-group(
+                      multiple
+                      show-arrows="desktop"
+                    )
+                      v-slide-item(
+                        v-for="img in playedImages"
+                        v-slot="{ active, toggle }"
+                      )
+                        v-img.ma-4(
+                          lazy-src
+                          :src="img"
+                          contains
+                          max-width="250"
+                          max-height="250"
+                        )
 </template>
 
 <script>
@@ -163,6 +212,22 @@ export default {
       ],
       images: [
         
+      ],
+      playedImages: [
+        'https://conteudo.imguol.com.br/c/noticias/41/2020/11/03/31out2020---presidente-norte-americano-donald-trump-participa-de-comicio-pela-sua-campanha-de-reeleicao-em-montoursville-pensilvania-1604442752412_v2_450x337.jpg',
+        'https://conteudo.imguol.com.br/c/noticias/41/2020/11/03/31out2020---presidente-norte-americano-donald-trump-participa-de-comicio-pela-sua-campanha-de-reeleicao-em-montoursville-pensilvania-1604442752412_v2_450x337.jpg',
+        'https://conteudo.imguol.com.br/c/noticias/41/2020/11/03/31out2020---presidente-norte-americano-donald-trump-participa-de-comicio-pela-sua-campanha-de-reeleicao-em-montoursville-pensilvania-1604442752412_v2_450x337.jpg',
+        'https://conteudo.imguol.com.br/c/noticias/41/2020/11/03/31out2020---presidente-norte-americano-donald-trump-participa-de-comicio-pela-sua-campanha-de-reeleicao-em-montoursville-pensilvania-1604442752412_v2_450x337.jpg',
+        'https://conteudo.imguol.com.br/c/noticias/41/2020/11/03/31out2020---presidente-norte-americano-donald-trump-participa-de-comicio-pela-sua-campanha-de-reeleicao-em-montoursville-pensilvania-1604442752412_v2_450x337.jpg',
+        'https://conteudo.imguol.com.br/c/noticias/41/2020/11/03/31out2020---presidente-norte-americano-donald-trump-participa-de-comicio-pela-sua-campanha-de-reeleicao-em-montoursville-pensilvania-1604442752412_v2_450x337.jpg',
+        'https://conteudo.imguol.com.br/c/noticias/41/2020/11/03/31out2020---presidente-norte-americano-donald-trump-participa-de-comicio-pela-sua-campanha-de-reeleicao-em-montoursville-pensilvania-1604442752412_v2_450x337.jpg',
+        'https://conteudo.imguol.com.br/c/noticias/41/2020/11/03/31out2020---presidente-norte-americano-donald-trump-participa-de-comicio-pela-sua-campanha-de-reeleicao-em-montoursville-pensilvania-1604442752412_v2_450x337.jpg',
+        'https://conteudo.imguol.com.br/c/noticias/41/2020/11/03/31out2020---presidente-norte-americano-donald-trump-participa-de-comicio-pela-sua-campanha-de-reeleicao-em-montoursville-pensilvania-1604442752412_v2_450x337.jpg',
+        'https://conteudo.imguol.com.br/c/noticias/41/2020/11/03/31out2020---presidente-norte-americano-donald-trump-participa-de-comicio-pela-sua-campanha-de-reeleicao-em-montoursville-pensilvania-1604442752412_v2_450x337.jpg',
+        'https://conteudo.imguol.com.br/c/noticias/41/2020/11/03/31out2020---presidente-norte-americano-donald-trump-participa-de-comicio-pela-sua-campanha-de-reeleicao-em-montoursville-pensilvania-1604442752412_v2_450x337.jpg',
+        'https://conteudo.imguol.com.br/c/noticias/41/2020/11/03/31out2020---presidente-norte-americano-donald-trump-participa-de-comicio-pela-sua-campanha-de-reeleicao-em-montoursville-pensilvania-1604442752412_v2_450x337.jpg',
+        'https://conteudo.imguol.com.br/c/noticias/41/2020/11/03/31out2020---presidente-norte-americano-donald-trump-participa-de-comicio-pela-sua-campanha-de-reeleicao-em-montoursville-pensilvania-1604442752412_v2_450x337.jpg',
+        'https://conteudo.imguol.com.br/c/noticias/41/2020/11/03/31out2020---presidente-norte-americano-donald-trump-participa-de-comicio-pela-sua-campanha-de-reeleicao-em-montoursville-pensilvania-1604442752412_v2_450x337.jpg'
       ]
     }
   },
@@ -256,6 +321,7 @@ export default {
 
       .stepSelected {
         box-shadow: -5px 0px 0px 0px #8C98BF, 5px 0px 0px 0px #8C98BF;
+        background-color: rgba(140, 152, 191, .2);
         font-weight: bold;
       }
 
@@ -324,6 +390,9 @@ export default {
             right: 20px;
             padding: 4px;
             border-radius: 10px;
+            min-width: 50px;
+            text-align: center;
+            -webkit-text-stroke: .4px $brand-light-grey;
           }
         }
       }
