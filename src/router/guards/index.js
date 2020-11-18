@@ -1,6 +1,8 @@
-const before = require.context('./before/', false, /.+\.js$/i)
-const resolve = require.context('./resolve/', false, /.+\.js$/i)
-const after = require.context('./after/', false, /.+\.js$/i)
+import requireContext from 'require-context.macro'
+
+const before = requireContext('./before/', false, /.+\.js$/i)
+const resolve = requireContext('./resolve/', false, /.+\.js$/i)
+const after = requireContext('./after/', false, /.+\.js$/i)
 
 const guards = {
   before: before
