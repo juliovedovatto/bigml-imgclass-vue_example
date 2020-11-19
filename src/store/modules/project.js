@@ -17,13 +17,22 @@ export default {
     },
     async list({ commit }) {
       const { data } = await Project.list()
-      console.log('Listing projects', { data })
+      console.log('Listing Projects', { data })
       data.results.forEach(item => commit('set', item))
+    },
+    async listImagesFromProject({ commit }, payload) {
+      const { data } = await Project.listImages(payload.id)
+      console.log('Listing Images from Projects', { data, commit })
+      // data.results.forEach(item => commit('set', item))
     },
     async create({ commit }, payload) {
       const { data } = await Project.create(payload)
 
       commit('set', data)
+    },
+    async createImageBundle({ commit }, payload) {
+      const { data } = await Project.createImageBundle(payload.id, payload.file)
+      console.log('createImageBundle', { commit, payload, data })
     },
     async update({ commit }, payload) {
       const { id } = payload

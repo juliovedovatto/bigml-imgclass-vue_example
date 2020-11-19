@@ -11,8 +11,7 @@
   v-container.container
     v-row(justify="center")
       v-col
-        v-img(:src="logo" height="100" transition="scale-transition" contain)
-        .name {{ $t('common.projectName') }}
+        v-img(:src="logo" height="320" transition="scale-transition")
     login-form(
       :username="username"
       :apiKey="apiKey"
@@ -24,7 +23,7 @@
 <script>
 import { TEST_API_KEY, TEST_API_USER } from '@/core/config'
 import LoginForm from '@/components/Auth/LoginForm'
-import Logo from '@/assets/img/bigml.svg'
+import Logo from '@/assets/img/bigimgclass.png'
 
 export default {
   name: 'Login',

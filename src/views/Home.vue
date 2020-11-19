@@ -31,16 +31,17 @@
           v-card.sidebarCard(flat)
             v-text-field(
               v-if="shouldShowProjectTextInput"
-              v-model="currentProject"
+              v-model="editingProject"
               outlined
               :label="$t('fields.projectName.label')"
             )
             v-select(
               v-else
-              v-model="currentProject"
-              :items="projects"
+              v-model="defaultProject"
+              :items="Object.values(projectList)"
               outlined
               item-value="id"
+              item-text="name"
             )
             v-btn.sidebarButton(
               v-if="shouldShowCreateNewProjectButton"
@@ -209,7 +210,8 @@ export default {
       editMode: false,
       currentTab: 'label',
       currentFilter: 'all',
-      currentProject: 'Untitled',
+      currentProject: null,
+      editingProject: 'Untitled',
       currentProgress: null,
       showLoading: false,
       projects: [
@@ -239,6 +241,17 @@ export default {
   },
   computed: {
     ...mapGetters('project', { projectList: 'list' }),
+    defaultProject: {
+      get() {
+        if (Object.values(this.projectList).length > 0 && this.currentProject === null) {
+          return Object.values(this.projectList)[0].id
+        }
+        return this.currentProject
+      },
+      set(newValue) {
+        this.currentProject = newValue
+      }
+    },
     onEditMode() {
       return this.editMode === true
     },
@@ -246,10 +259,10 @@ export default {
       return this.images.length > 0
     },
     shouldShowProjectTextInput() {
-      return this.onEditMode || this.projects.length === 0
+      return this.onEditMode || Object.values(this.projectList).length === 0
     },
     shouldShowCreateNewProjectButton() {
-      return this.projects.length > 0 && this.editMode === false
+      return Object.values(this.projectList).length > 0 && this.editMode === false
     },
     shouldShowUploadTabDescription() {
       return (!this.showLoading && this.projects.length === 0) || this.editMode
@@ -264,6 +277,7 @@ export default {
   },
   methods: {
     disableEditMode() {
+      this.editingProject = 'Untitled'
       this.editMode = false
     },
     isStepSelected(step) {
@@ -271,6 +285,7 @@ export default {
     },
     setCurrentTab(tab) {
       console.log('setCurrentTab', { projects: this.$store })
+      this.$store.dispatch('project/listImagesFromProject', { id: this.defaultProject })
       return (this.currentTab = tab)
     },
     setCurrentFilter(filter) {
@@ -289,9 +304,16 @@ export default {
       const projectList = await this.$store.dispatch('project/list')
       console.log('listProjects', { projectList })
     },
-    createProjectAndUploadFiles(...rest) {
-      console.log('createProjectAndUploadFiles', { rest, currentProject: this.currentProject })
-      this.$store.dispatch('project/create', { name: this.currentProject })
+    createProjectAndUploadFiles(file) {
+      // const reader = new FileReader()
+      // reader.readAsDataURL(file)
+      // reader.onload = evt => {
+      //   console.log('onload', { test: evt.target.result })
+      //   this.$store.dispatch('project/createImageBundle', { id: this.defaultProject, file: evt.target.result })
+      // }
+      console.log('createProjectAndUploadFiles', { file, defaultProject: this.defaultProject })
+      // this.$store.dispatch('project/create', { name: this.currentProject })
+      this.$store.dispatch('project/createImageBundle', { id: this.defaultProject, file })
       this.showLoading = true
     },
     injectImages() {
