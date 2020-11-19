@@ -15,7 +15,7 @@
       "allImages": "All images"
     },
     "uploadDescription": "To start training you model, import and label some images.",
-    "loadingDescription": "Uploading images and training your model"
+    "loadingDescription": "Uploading images to BigML"
   }
 }
 </i18n>
@@ -141,10 +141,10 @@
               )
                 .loadingDescription {{ $t('loadingDescription') }}
                 v-progress-circular(
-                  :value="currentProgress"
+                  indeterminate
                   color="primary"
                   size="100" width="10"
-                ) {{ formatCurrentProgress(currentProgress) }}
+                )
             .accuracyTabContainer(v-show="shouldShowTab('train')")
               div(v-if="hasImages")
                 div.d-flex.flex-column(v-for="img in filteredImages")
@@ -284,8 +284,10 @@ export default {
       return this.currentTab === step ? 'stepSelected' : ''
     },
     setCurrentTab(tab) {
-      console.log('setCurrentTab', { projects: this.$store })
-      this.$store.dispatch('project/listImagesFromProject', { id: this.defaultProject })
+      console.log('setCurrentTab', { projects: this.defaultProject })
+      // this.$store.dispatch('project/listImagesFromProject', { id: this.defaultProject })
+      // this.$store.dispatch('project/get', this.defaultProject)
+      this.$store.dispatch('project/pool', { actionName: 'get', id: this.defaultProject })
       return (this.currentTab = tab)
     },
     setCurrentFilter(filter) {
@@ -304,17 +306,23 @@ export default {
       const projectList = await this.$store.dispatch('project/list')
       console.log('listProjects', { projectList })
     },
-    createProjectAndUploadFiles(file) {
-      // const reader = new FileReader()
-      // reader.readAsDataURL(file)
-      // reader.onload = evt => {
-      //   console.log('onload', { test: evt.target.result })
-      //   this.$store.dispatch('project/createImageBundle', { id: this.defaultProject, file: evt.target.result })
-      // }
-      console.log('createProjectAndUploadFiles', { file, defaultProject: this.defaultProject })
-      // this.$store.dispatch('project/create', { name: this.currentProject })
-      this.$store.dispatch('project/createImageBundle', { id: this.defaultProject, file })
+    async createProjectAndUploadFiles(file) {
       this.showLoading = true
+      console.log('Create the project', { file, projectName: this.editingProject })
+      const { id: projectId } = await this.$store.dispatch('project/create', { name: this.editingProject })
+      console.log('Create the Image Bundle', { file, projectId })
+      const { id: bundleId } = await this.$store.dispatch('project/createImageBundle', {
+        id: projectId,
+        file
+      })
+      console.log('Start pooling the bundle so we know when its ready to show the images', { bundleId })
+      await this.$store.dispatch('project/pool', { actionName: 'getImageBundle', data: { bundleId, projectId } })
+      // const testBundle = await this.$store.dispatch('project/getImageBundle', { projectId, bundleId })
+      // console.log('We show images', { testBundle })
+      // this.currentImages = await this.$store.dispatch('project/getImages', { id: projectId })
+      // console.log('start pooling on the project to know when its ready to show train and play')
+      // await get Project
+      // console.log('enable train and play')
     },
     injectImages() {
       this.images.push(

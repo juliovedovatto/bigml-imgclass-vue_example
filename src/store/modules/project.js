@@ -4,7 +4,13 @@ import Vue from 'vue'
 export default {
   namespaced: true,
   state: {
-    projects: {}
+    projects: {},
+    currentProject: {
+      // selected project data
+    },
+    currentImages: {
+      // selected project images
+    }
   },
   getters: {
     list(state) {
@@ -12,12 +18,14 @@ export default {
     }
   },
   actions: {
-    get(state, id) {
-      return state.projects[id] || null
+    async get({ state }, id) {
+      const { data } = await Project.get(id)
+      console.log('Listing Project', { id, data, test: state.projects[id] })
+      return data
     },
     async list({ commit }) {
       const { data } = await Project.list()
-      console.log('Listing Projects', { data })
+      console.log('Listing Projects', { id: data?.results[0]?.id })
       data.results.forEach(item => commit('set', item))
     },
     async listImagesFromProject({ commit }, payload) {
@@ -27,12 +35,13 @@ export default {
     },
     async create({ commit }, payload) {
       const { data } = await Project.create(payload)
-
       commit('set', data)
+      return data
     },
-    async createImageBundle({ commit }, payload) {
-      const { data } = await Project.createImageBundle(payload.id, payload.file)
-      console.log('createImageBundle', { commit, payload, data })
+    async createImageBundle(_, payload) {
+      const { id, file } = payload
+      const { data } = await Project.createImageBundle(id, file)
+      return data
     },
     async update({ commit }, payload) {
       const { id } = payload
@@ -45,6 +54,29 @@ export default {
       await Project.delete(id)
 
       commit('delete', id)
+    },
+    async getImageBundle(_, payload) {
+      const { projectId, bundleId } = payload
+      const data = await Project.getImageBundle(projectId, bundleId)
+      return data
+    },
+    pool({ dispatch }, payload) {
+      // separate polling
+      const { data, actionName } = payload
+      async function checkIfReady() {
+        const {
+          data: { status }
+        } = await dispatch(actionName, data)
+        if (status === 'READY') {
+          console.log('its ready')
+          // get images
+          clearInterval(pool)
+        } else {
+          console.log('not ready yet', { status })
+        }
+      }
+      checkIfReady()
+      const pool = setInterval(checkIfReady, 5000)
     }
   },
   mutations: {
@@ -56,8 +88,6 @@ export default {
       state.projects = Object.assign({}, state.projects, {
         [project.id]: project
       })
-
-      console.log('Setting project', { project, projects: state.projects })
     },
     remove(state, id) {
       Vue.delete(state.projects, id)
