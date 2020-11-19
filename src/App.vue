@@ -36,7 +36,7 @@ export default {
       return LogoFooter
     },
     canShowLayout() {
-      return true ||this.isAuthVerified || !this.isAuthRequired
+      return true || this.isAuthVerified || !this.isAuthRequired
     }
   },
   errorCaptured(error) {

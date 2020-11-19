@@ -17,7 +17,7 @@ export default {
     },
     async list({ commit }) {
       const { data } = await Project.list()
-
+      console.log('Listing projects', { data })
       data.results.forEach(item => commit('set', item))
     },
     async create({ commit }, payload) {
@@ -44,9 +44,11 @@ export default {
         return
       }
 
-      state.project = Object.assign({}, state.projects, {
+      state.projects = Object.assign({}, state.projects, {
         [project.id]: project
       })
+
+      console.log('Setting project', { project, projects: state.projects })
     },
     remove(state, id) {
       Vue.delete(state.projects, id)
