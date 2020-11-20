@@ -6,9 +6,18 @@
     v-main
       v-container(fill-height)
         router-view
+        .div(@click="closeAlert")
+          v-snackbar(
+            right
+            :value="shouldShowAlert"
+            :color="type"
+            @input="closeAlert"
+          ) {{ message }}
+
 
     v-footer(dark v-if="true")
       v-img.shrink(:src="logoFooter" width="45" transition="scale-transition" contain)
+
 </template>
 
 <script>
@@ -29,6 +38,7 @@ export default {
   }),
   computed: {
     ...mapState('auth', ['isAuthVerified', 'isUserLoggedIn', 'isAuthRequired']),
+    ...mapState('alert', ['type', 'message']),
     logo() {
       return Logo
     },
@@ -36,7 +46,10 @@ export default {
       return LogoFooter
     },
     canShowLayout() {
-      return true || this.isAuthVerified || !this.isAuthRequired
+      return this.isAuthVerified || !this.isAuthRequired
+    },
+    shouldShowAlert() {
+      return !!this.message
     }
   },
   errorCaptured(error) {
@@ -50,6 +63,9 @@ export default {
   methods: {
     refreshTokens() {
       this.$store.dispatch('auth/refreshTokens')
+    },
+    closeAlert() {
+      this.$store.dispatch('alert/clear')
     }
   }
 }
