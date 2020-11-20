@@ -113,7 +113,7 @@
                       v-if="currentProject.status === 'READY'"
                       rounded
                       style="margin-top: 4px;"
-                      :value="Math.floor(currentProject.bigml_execution_status.evaluation_details.performance_per_class[label].accuracy * 100)"
+                      :value="getLabelAccuracy(label)"
                       :color="(currentTab !== 'play' && !editMode) && shouldOutlineButton(label) ? 'primary' : 'white'"
                       height="6"
                     )
@@ -308,6 +308,12 @@ export default {
     this.listProjects()
   },
   methods: {
+    getLabelAccuracy(label) {
+      const labelAccuracy = this.currentProject?.bigml_execution_status?.evaluation_details?.performance_per_class[
+        label
+      ]?.accuracy
+      return Math.floor((labelAccuracy || 0) * 100)
+    },
     disableEditMode() {
       const [[, { id }]] = Object.entries(this.projectList)
       this.$store.dispatch('project/setCurrentProject', { id })
