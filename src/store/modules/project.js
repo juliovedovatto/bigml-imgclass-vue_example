@@ -46,6 +46,7 @@ export default {
       const { id } = payload
       const { projects } = state
       commit('setCurrentProject', projects[id])
+      commit('clearImagesFromProject')
       dispatch('listImagesFromProject', { id })
     },
     async listImagesFromProject({ commit }, payload) {
@@ -138,6 +139,9 @@ export default {
       state.currentProject = {}
       state.currentImages = {}
       state.currentImageBundle = {}
+    },
+    clearImagesFromProject(state) {
+      state.currentImages = {}
     },
     setCurrentProject(state, currentProject = {}) {
       if (!currentProject?.id) {

@@ -250,6 +250,12 @@ export default {
       return Object.values(this.projectList).length === 0 && !this.showLoading
     },
     labels() {
+      const foo = [...new Set(Object.values(this.currentImages).map(({ label }) => label))]
+      console.log(foo)
+      foo.forEach(label => {
+        console.log(label)
+        this.currentProject.bigml_execution_status.evaluation_details.performance_per_class[label].accuracy
+      })
       return [...new Set(Object.values(this.currentImages).map(({ label }) => label))]
     },
     filteredImages() {
