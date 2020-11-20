@@ -13,29 +13,45 @@ export default {
     }
   },
   getters: {
-    list(state) {
+    projectList(state) {
       return state.projects
+    },
+    currentProject(state) {
+      return state.currentProject
+    },
+    currentImages(state) {
+      return state.currentImages
     }
   },
   actions: {
-    async get({ state }, id) {
+    async getProject({ commit }, payload) {
+      const { id } = payload
       const { data } = await Project.get(id)
-      console.log('Listing Project', { id, data, test: state.projects[id] })
+      commit('setCurrentProject', data)
       return data
     },
-    async list({ commit }) {
+    clear({ commit }) {
+      commit('clear')
+    },
+    async listProjects({ commit }) {
       const { data } = await Project.list()
       console.log('Listing Projects', { id: data?.results[0]?.id })
-      data.results.forEach(item => commit('set', item))
+      data.results.forEach(item => commit('setProject', item))
+    },
+    setCurrentProject({ commit, dispatch, state }, payload) {
+      const { id } = payload
+      const { projects } = state
+      commit('setCurrentProject', projects[id])
+      dispatch('listImagesFromProject', { id })
     },
     async listImagesFromProject({ commit }, payload) {
-      const { data } = await Project.listImages(payload.id)
-      console.log('Listing Images from Projects', { data, commit })
-      // data.results.forEach(item => commit('set', item))
+      const { id } = payload
+      const { data } = await Project.listImages(id)
+      data.results.forEach(item => commit('setCurrentImage', item))
     },
     async create({ commit }, payload) {
       const { data } = await Project.create(payload)
-      commit('set', data)
+      commit('setProject', data)
       return data
     },
     async createImageBundle(_, payload) {
@@ -60,19 +76,36 @@ export default {
       const data = await Project.getImageBundle(projectId, bundleId)
       return data
     },
-    pool({ dispatch }, payload) {
-      // separate polling
-      const { data, actionName } = payload
+    pollImageBundle({ dispatch }, payload) {
+      const { bundleId, projectId } = payload
       async function checkIfReady() {
         const {
           data: { status }
-        } = await dispatch(actionName, data)
+        } = await dispatch('getImageBundle', { projectId, bundleId })
         if (status === 'READY') {
-          console.log('its ready')
-          // get images
+          console.log('Bundle is ready')
+          dispatch('listProjects')
+          dispatch('listImagesFromProject', { id: projectId })
           clearInterval(pool)
         } else {
-          console.log('not ready yet', { status })
+          console.log('Bundle isnt ready yet', { status })
+        }
+      }
+      checkIfReady()
+      const pool = setInterval(checkIfReady, 5000)
+    },
+    pollProject({ commit, dispatch }, payload) {
+      const { id } = payload
+      async function checkIfReady() {
+        const project = await dispatch('getProject', { id })
+        const { status } = project
+        if (status === 'READY') {
+          console.log('Project is ready')
+          dispatch('listImagesFromProject', { id })
+          commit('setProject', project)
+          clearInterval(pool)
+        } else {
+          console.log('Project isnt ready yet', { status })
         }
       }
       checkIfReady()
@@ -80,7 +113,7 @@ export default {
     }
   },
   mutations: {
-    set(state, project = {}) {
+    setProject(state, project = {}) {
       if (!project?.id) {
         return
       }
@@ -89,6 +122,35 @@ export default {
         [project.id]: project
       })
     },
+    clear(state) {
+      state.currentProject = {}
+      state.currentImages = {}
+    },
+    setCurrentProject(state, currentProject = {}) {
+      if (!currentProject?.id) {
+        return
+      }
+
+      state.currentProject = Object.assign({}, currentProject)
+    },
+    setCurrentImage(state, currentImage = {}) {
+      if (!currentImage?.id) {
+        return
+      }
+
+      state.currentImages = Object.assign({}, state.currentImages, {
+        [currentImage.id]: currentImage
+      })
+    },
+    // setImage(state, project = {}) {
+    //   if (!image?.id) {
+    //     return
+    //   }
+
+    //   state.projects = Object.assign({}, state.projects, {
+    //     [project.id]: project
+    //   })
+    // },
     remove(state, id) {
       Vue.delete(state.projects, id)
     }

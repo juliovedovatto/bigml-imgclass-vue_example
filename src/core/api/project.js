@@ -27,7 +27,7 @@ class Project extends API {
   }
 
   async listImages(id) {
-    return await this.request.get(`/projects/${id}/images/`)
+    return await this.request.get(`/projects/${id}/images/`, { params: { limit: 1000 } })
   }
 
   async listImageBundle(id) {

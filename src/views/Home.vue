@@ -37,7 +37,7 @@
             )
             v-select(
               v-else
-              v-model="defaultProject"
+              v-model="currentProjectHandler"
               :items="Object.values(projectList)"
               outlined
               item-value="id"
@@ -63,14 +63,15 @@
               v-btn.sidebarButton(
                 :class="isStepSelected('train')"
                 @click="setCurrentTab('train')"
-                :disabled="!hasImages"
+                :disabled="currentProject.status !== 'READY' || editMode"
+                :loading="currentProject.status !== 'READY' && currentProject.status != null"
                 color="#8C98BF"
                 text
               ) {{ $t('buttons.train') }}
               v-btn.sidebarButton(
                 :class="isStepSelected('play')"
                 @click="setCurrentTab('play')"
-                :disabled="!hasImages"
+                :disabled="currentProject.status !== 'READY' || editMode"
                 color="#8C98BF"
                 text
               ) {{ $t('buttons.play') }}
@@ -79,45 +80,46 @@
                 :outlined="currentTab !== 'play' && shouldOutlineButton('all')"
                 @click="setCurrentFilter('all')"
                 color="primary"
-                flat
                 class="white--text"
-                :disabled="currentTab === 'play'"
+                :disabled="currentTab === 'play' || editMode"
               ) 
                 div(style="width: 100%; padding: 4px;")
                   div {{ $t('buttons.allImages') }}
                   v-progress-linear(
+                    v-if="currentProject.status === 'READY'"
                     rounded style="margin-top: 4px;"
-                    value="97"
+                    :value="Math.floor(currentProject.bigml_execution_status.evaluation_details.performance.accuracy * 100)"
                     :color="currentTab !== 'play' && shouldOutlineButton('all') ? 'primary' : 'white'"
                     height="6"
                   )
               v-btn.sidebarButton(
-                v-for="img in images"
-                :outlined="currentTab !== 'play' && shouldOutlineButton(img.label)"
-                @click="setCurrentFilter(img.label)"
+                v-for="label in labels"
+                :outlined="(currentTab !== 'play' && !editMode) && shouldOutlineButton(label)"
+                @click="setCurrentFilter(label)"
                 color="primary"
                 class="white--text"
-                :disabled="currentTab === 'play'"
+                :disabled="currentTab === 'play' || editMode"
               )
                 div(style="width: 100%; padding: 4px;")
-                    div {{ img.label }}
+                    div {{ label }}
                     v-progress-linear(
+                      v-if="currentProject.status === 'READY'"
                       rounded
                       style="margin-top: 4px;"
-                      value="97"
-                      :color="currentTab !== 'play' && shouldOutlineButton(img.label) ? 'primary' : 'white'"
+                      :value="Math.floor(currentProject.bigml_execution_status.evaluation_details.performance_per_class[label].accuracy * 100)"
+                      :color="(currentTab !== 'play' && !editMode) && shouldOutlineButton(label) ? 'primary' : 'white'"
                       height="6"
                     )
           v-card.contentCard(outlined)
             .uploadTabContainer(v-show="shouldShowTab('label')")
-              div(v-if="hasImages")
+              div(v-if="hasImages && !editMode")
                 div.d-flex.flex-column(v-for="img in filteredImages" )
                   h2 {{ img.label }}
                   div.d-flex
                     div.d-flex
                     v-img(
                       v-for="img in img.data"
-                      :src="img"
+                      :src="img.file"
                       lazy-src
                       contains
                       max-width="250"
@@ -127,16 +129,14 @@
               .descriptionContainer(v-if="shouldShowUploadTabDescription")
                 .description {{ $t('uploadDescription') }}
               vue-dropzone.drop(
-                v-show="!showLoading && images.length === 0"
+                v-show="!showLoading && Object.values(this.currentImages).length === 0 || editMode"
                 :options="dropzoneOptions"
-                @vdropzone-success="projects.push({ text: currentProject, value: projects.length }); showLoading = false; injectImages(); editMode = false"
-                @vdropzone-upload-progress="(file, progress) => currentProgress = progress"
                 @vdropzone-file-added="createProjectAndUploadFiles"
                 id="dropzone"
                 ref="myVueDropzone"
               )
               .loadingSection(
-                v-if="showLoading"
+                v-if="Object.values(this.currentImages).length === 0"
                 class="d-flex justify-center align-center flex-column"
               )
                 .loadingDescription {{ $t('loadingDescription') }}
@@ -147,18 +147,28 @@
                 )
             .accuracyTabContainer(v-show="shouldShowTab('train')")
               div(v-if="hasImages")
-                div.d-flex.flex-column(v-for="img in filteredImages")
-                  h2 {{ img.label }}
+                div.d-flex.flex-column(v-if="correctImages.length > 0")
+                  h2 Correct
                   div.d-flex
-                    .imageContainer( v-for="img, index in img.data")
+                    .imageContainer(v-for="img, index in correctImages")
                       v-img.image(
                         lazy-src
-                        :src="img"
-                        contains
+                        :src="img.file"
                         max-width="250"
                         max-height="250"
                       )
-                      .accuracy( :style="index % 2 === 0 ? `background: linear-gradient(90deg, rgba(239, 83, 80, 1) 10%, rgba(239, 83, 80, .6) 10%);`: `background: linear-gradient(90deg, rgba(168, 201, 16, 1) 90%, rgba(168, 201, 16, .6) 90%);`" ) {{ `${index % 2 === 0 ? '10%' : '90%'}` }}
+                        .accuracy( :style="`background: linear-gradient(90deg, rgba(168, 201, 16, 1) ${Math.floor(img.label_probability * 100)}%, rgba(168, 201, 16, .6) ${Math.floor(img.label_probability * 100)}%);`" ) {{ img.predicted_label }}
+                div.d-flex.flex-column(v-if="incorrectImages.length > 0")
+                  h2 Incorrect
+                  div.d-flex
+                    .imageContainer(v-for="img, index in incorrectImages")
+                      v-img.image(
+                        lazy-src
+                        :src="img.file"
+                        max-width="250"
+                        max-height="250"
+                      )
+                        .accuracy( :style="`background: linear-gradient(90deg, rgba(239, 83, 80, 1) ${Math.floor(img.label_probability * 100)}%, rgba(239, 83, 80, .6) ${Math.floor(img.label_probability * 100)}%);`") {{ img.predicted_label }}
             .accuracyTabContainer(v-show="shouldShowTab('play')")
               div(style="width: 100%; height: 100%;")
                 div(style="width: 100%; height: 100%;")
@@ -210,7 +220,6 @@ export default {
       editMode: false,
       currentTab: 'label',
       currentFilter: 'all',
-      currentProject: null,
       editingProject: 'Untitled',
       currentProgress: null,
       showLoading: false,
@@ -240,23 +249,26 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('project', { projectList: 'list' }),
-    defaultProject: {
+    ...mapGetters('project', ['projectList', 'currentProject', 'currentImages']),
+    currentProjectHandler: {
       get() {
-        if (Object.values(this.projectList).length > 0 && this.currentProject === null) {
-          return Object.values(this.projectList)[0].id
+        const noCurrentProject = Object.keys(this.currentProject).length === 0
+        const hasProjects = Object.keys(this.projectList).length > 0
+        if (noCurrentProject && hasProjects) {
+          const [[, { id }]] = Object.entries(this.projectList)
+          this.$store.dispatch('project/setCurrentProject', { id })
         }
         return this.currentProject
       },
-      set(newValue) {
-        this.currentProject = newValue
+      set(id) {
+        this.$store.dispatch('project/setCurrentProject', { id })
       }
     },
     onEditMode() {
       return this.editMode === true
     },
     hasImages() {
-      return this.images.length > 0
+      return Object.values(this.currentImages).length > 0
     },
     shouldShowProjectTextInput() {
       return this.onEditMode || Object.values(this.projectList).length === 0
@@ -265,11 +277,27 @@ export default {
       return Object.values(this.projectList).length > 0 && this.editMode === false
     },
     shouldShowUploadTabDescription() {
-      return (!this.showLoading && this.projects.length === 0) || this.editMode
+      return (!this.showLoading && Object.values(this.projectList).length === 0) || this.editMode
+    },
+    labels() {
+      return [...new Set(Object.values(this.currentImages).map(({ label }) => label))]
     },
     filteredImages() {
-      if (this.currentFilter === 'all') return this.images
-      return this.images.filter(img => img.label === this.currentFilter)
+      console.log('labels', { labels: this.labels })
+      const imagesByLabels = []
+      this.labels.map(label =>
+        imagesByLabels.push({ label, data: Object.values(this.currentImages).filter(image => image.label === label) })
+      )
+      if (this.currentFilter === 'all') {
+        return imagesByLabels
+      }
+      return imagesByLabels.filter(img => img.label === this.currentFilter)
+    },
+    correctImages() {
+      return Object.values(this.currentImages).filter(image => image.label === image.predicted_label)
+    },
+    incorrectImages() {
+      return Object.values(this.currentImages).filter(image => image.label !== image.predicted_label)
     }
   },
   created() {
@@ -285,9 +313,6 @@ export default {
     },
     setCurrentTab(tab) {
       console.log('setCurrentTab', { projects: this.defaultProject })
-      // this.$store.dispatch('project/listImagesFromProject', { id: this.defaultProject })
-      // this.$store.dispatch('project/get', this.defaultProject)
-      this.$store.dispatch('project/pool', { actionName: 'get', id: this.defaultProject })
       return (this.currentTab = tab)
     },
     setCurrentFilter(filter) {
@@ -303,11 +328,11 @@ export default {
       return `${Math.floor(progress)}%`
     },
     async listProjects() {
-      const projectList = await this.$store.dispatch('project/list')
-      console.log('listProjects', { projectList })
+      await this.$store.dispatch('project/listProjects')
+      console.log('listProjects', { projectList: this.projectList })
     },
     async createProjectAndUploadFiles(file) {
-      this.showLoading = true
+      this.$store.dispatch('project/clear')
       console.log('Create the project', { file, projectName: this.editingProject })
       const { id: projectId } = await this.$store.dispatch('project/create', { name: this.editingProject })
       console.log('Create the Image Bundle', { file, projectId })
@@ -316,7 +341,8 @@ export default {
         file
       })
       console.log('Start pooling the bundle so we know when its ready to show the images', { bundleId })
-      await this.$store.dispatch('project/pool', { actionName: 'getImageBundle', data: { bundleId, projectId } })
+      this.$store.dispatch('project/pollImageBundle', { bundleId, projectId })
+      this.$store.dispatch('project/pollProject', { id: projectId })
       // const testBundle = await this.$store.dispatch('project/getImageBundle', { projectId, bundleId })
       // console.log('We show images', { testBundle })
       // this.currentImages = await this.$store.dispatch('project/getImages', { id: projectId })
@@ -447,7 +473,7 @@ export default {
 
           .accuracy {
             position: absolute;
-            bottom: 20px;
+            bottom: 10px;
             color: white;
             right: 20px;
             padding: 4px;
