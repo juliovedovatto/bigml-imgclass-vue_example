@@ -35,11 +35,11 @@ class Project extends API {
   }
 
   async listImageBundleImages(projectId, id) {
-    return await this.request.get(`/projects/${projectId}/image-bundles/${id}/images`)
+    return await this.request.get(`/projects/${projectId}/image-bundles/${id}/images/`)
   }
 
   async getImageBundle(projectId, id) {
-    return await this.request.get(`/projects/${projectId}/image-bundles/${id}`)
+    return await this.request.get(`/projects/${projectId}/image-bundles/${id}/`)
   }
 
   async createImageBundle(id, data = {}) {
@@ -54,7 +54,7 @@ class Project extends API {
   }
 
   async deleteImageBundle(projectId, id) {
-    return await this.request.delete(`/projects/${projectId}/images-bundle/${id}`)
+    return await this.request.delete(`/projects/${projectId}/images-bundle/${id}/`)
   }
 }
 

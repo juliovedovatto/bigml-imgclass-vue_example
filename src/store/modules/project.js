@@ -93,6 +93,8 @@ export default {
           dispatch('pollProject', { id: projectId })
           commit('setCurrentImageBundle', data)
           clearInterval(poll)
+        } else if (status === 'ERROR') {
+          dispatch('')
         } else {
           console.log('Bundle isnt ready yet', { status })
         }
