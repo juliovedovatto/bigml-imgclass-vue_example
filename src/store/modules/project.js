@@ -94,7 +94,8 @@ export default {
           commit('setCurrentImageBundle', data)
           clearInterval(poll)
         } else if (status === 'ERROR') {
-          dispatch('')
+          dispatch('alert/error', 'Sorry we had a problem creating the image bundle.')
+          clearInterval(poll)
         } else {
           console.log('Bundle isnt ready yet', { status })
         }
@@ -111,6 +112,9 @@ export default {
           console.log('Project is ready')
           dispatch('listImagesFromProject', { id })
           commit('setProject', project)
+          clearInterval(poll)
+        } else if (status === 'ERROR') {
+          dispatch('alert/error', 'Sorry we had a problem training the project.')
           clearInterval(poll)
         } else {
           console.log('Project isnt ready yet', { status })
