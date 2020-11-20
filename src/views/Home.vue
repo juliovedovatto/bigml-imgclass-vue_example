@@ -15,7 +15,11 @@
       "allImages": "All images"
     },
     "uploadDescription": "To start training you model, import and label some images.",
-    "loadingDescription": "Uploading images to BigML"
+    "loadingDescription": "Uploading images to BigML",
+    "noImagesWithLabel": "No images predicted with the ",
+    "label": "label",
+    "correct": "Correct",
+    "incorrect": "Incorrect"
   }
 }
 </i18n>
@@ -149,9 +153,9 @@
                   size="100" width="10"
                 )
             .accuracyTabContainer(v-show="shouldShowTab('train')")
-              div(v-if="hasImages")
+              div(v-if="hasImages" style="height: 100%")
                 div.d-flex.flex-column(v-if="correctImages.length > 0")
-                  h2 Correct
+                  h2 {{ $t('correct') }}
                   div.d-flex
                     .imageContainer(v-for="img, index in correctImages")
                       v-img.image(
@@ -162,9 +166,13 @@
                         max-height="250"
                       )
                         .accuracy( :style="`background: linear-gradient(90deg, rgba(168, 201, 16, 1) ${Math.floor(img.label_probability * 100)}%, rgba(168, 201, 16, .6) ${Math.floor(img.label_probability * 100)}%);`" ) {{ img.predicted_label }}
+                .d-flex(v-else class="justify-center align-center" style="height: 100%")
+                  v-alert(type="warning" outlined) {{ $t('noImagesWithLabel')}}
+                    span(style="font-weight: bold; text-decoration: underline;") {{ currentFilter }}
+                    |  {{ $t('label') }}
                 div.d-flex.flex-column(v-if="incorrectImages.length > 0")
-                  h2 Incorrect
-                  div.d-flex
+                  h2 {{ $t('incorrect') }}
+                  div.d-flex(style="height: 100%")
                     .imageContainer(v-for="img, index in incorrectImages")
                       v-img.image(
                         lazy-src
@@ -174,6 +182,10 @@
                         max-height="250"
                       )
                         .accuracy( :style="`background: linear-gradient(90deg, rgba(239, 83, 80, 1) ${Math.floor(img.label_probability * 100)}%, rgba(239, 83, 80, .6) ${Math.floor(img.label_probability * 100)}%);`") {{ img.predicted_label }}
+                .d-flex(v-else class="justify-center align-center" style="height: 100%")
+                  v-alert(type="warning" outlined) {{ $t('noImagesWithLabel')}}
+                    span(style="font-weight: bold; text-decoration: underline;") {{ currentFilter }}
+                    |  {{ $t('label') }}
             .accuracyTabContainer(v-show="shouldShowTab('play')")
               div(style="width: 100%; height: 100%;")
                 div(style="width: 100%; height: 100%;")
@@ -424,6 +436,10 @@ export default {
             margin-bottom: 20px;
           }
         }
+      }
+
+      .accuracyTabContainer {
+        height: 100%;
       }
     }
   }
