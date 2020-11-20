@@ -37,7 +37,7 @@
             )
             v-select(
               v-else
-              v-model="currentProjectHandler"
+              v-model="currentProjectId"
               :items="Object.values(projectList)"
               outlined
               item-value="id"
@@ -45,18 +45,21 @@
             )
             v-btn.sidebarButton(
               v-if="shouldShowCreateNewProjectButton"
+              :disabled="currentProject.status !== 'READY'"
               @click="createNewProject"
               class="white--text primary"
             ) {{ $t('buttons.newProject') }}
             v-btn.sidebarButton(
               v-if="onEditMode"
               @click="disableEditMode"
+              :disabled="showLoading"
               class="white--text error"
             ) {{ $t('buttons.cancel') }}
             .sidebarSectionHeader
               v-btn.sidebarButton(
                 :class="isStepSelected('label')"
                 @click="setCurrentTab('label')"
+                style="text-align: left;"
                 color="#8C98BF"
                 text
               ) {{ $t('buttons.label') }}
@@ -64,7 +67,7 @@
                 :class="isStepSelected('train')"
                 @click="setCurrentTab('train')"
                 :disabled="currentProject.status !== 'READY' || editMode"
-                :loading="currentProject.status !== 'READY' && currentProject.status != null"
+                :loading="currentImageBundle.status === 'READY' && (currentProject.status != null && currentProject.status !== 'READY')"
                 color="#8C98BF"
                 text
               ) {{ $t('buttons.train') }}
@@ -116,27 +119,26 @@
                 div.d-flex.flex-column(v-for="img in filteredImages" )
                   h2 {{ img.label }}
                   div.d-flex
-                    div.d-flex
-                    v-img(
-                      v-for="img in img.data"
-                      :src="img.file"
-                      lazy-src
-                      contains
-                      max-width="250"
-                      max-height="250"
-                      class="image"
-                    )
-              .descriptionContainer(v-if="shouldShowUploadTabDescription")
+                    .imageContainer(v-for="img, index in img.data")
+                      v-img.image(
+                        lazy-src
+                        :src="img.file"
+                        max-width="250"
+                        max-height="250"
+                      )
+                        .accuracy(style="background-color: rgba(0,0,0,.5)") {{ img.label }}
+              .descriptionContainer(v-if="shouldShowDropzone")
                 .description {{ $t('uploadDescription') }}
               vue-dropzone.drop(
-                v-show="!showLoading && Object.values(this.currentImages).length === 0 || editMode"
+                v-show="shouldShowDropzone"
                 :options="dropzoneOptions"
                 @vdropzone-file-added="createProjectAndUploadFiles"
+                @vdropzone-drop="showLoading = true"
                 id="dropzone"
                 ref="myVueDropzone"
               )
               .loadingSection(
-                v-if="Object.values(this.currentImages).length === 0"
+                v-if="showLoading && currentImageBundle.status !== 'READY'"
                 class="d-flex justify-center align-center flex-column"
               )
                 .loadingDescription {{ $t('loadingDescription') }}
@@ -217,6 +219,7 @@ export default {
         autoProcessQueue: false,
         maxFiles: 1
       },
+      currentProjectId: '',
       editMode: false,
       currentTab: 'label',
       currentFilter: 'all',
@@ -249,20 +252,11 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('project', ['projectList', 'currentProject', 'currentImages']),
-    currentProjectHandler: {
-      get() {
-        const noCurrentProject = Object.keys(this.currentProject).length === 0
-        const hasProjects = Object.keys(this.projectList).length > 0
-        if (noCurrentProject && hasProjects) {
-          const [[, { id }]] = Object.entries(this.projectList)
-          this.$store.dispatch('project/setCurrentProject', { id })
-        }
-        return this.currentProject
-      },
-      set(id) {
-        this.$store.dispatch('project/setCurrentProject', { id })
-      }
+    ...mapGetters('project', ['projectList', 'currentProject', 'currentImages', 'currentImageBundle']),
+    shouldShowDropzone() {
+      if (this.showLoading) return false
+      if (this.editMode || Object.values(this.projectList).length === 0) return true
+      return true
     },
     onEditMode() {
       return this.editMode === true
@@ -277,13 +271,12 @@ export default {
       return Object.values(this.projectList).length > 0 && this.editMode === false
     },
     shouldShowUploadTabDescription() {
-      return (!this.showLoading && Object.values(this.projectList).length === 0) || this.editMode
+      return Object.values(this.projectList).length === 0 && !this.showLoading
     },
     labels() {
       return [...new Set(Object.values(this.currentImages).map(({ label }) => label))]
     },
     filteredImages() {
-      console.log('labels', { labels: this.labels })
       const imagesByLabels = []
       this.labels.map(label =>
         imagesByLabels.push({ label, data: Object.values(this.currentImages).filter(image => image.label === label) })
@@ -300,11 +293,18 @@ export default {
       return Object.values(this.currentImages).filter(image => image.label !== image.predicted_label)
     }
   },
+  watch: {
+    currentProjectId(id) {
+      this.$store.dispatch('project/setCurrentProject', { id })
+    }
+  },
   created() {
     this.listProjects()
   },
   methods: {
     disableEditMode() {
+      const [[, { id }]] = Object.entries(this.projectList)
+      this.$store.dispatch('project/setCurrentProject', { id })
       this.editingProject = 'Untitled'
       this.editMode = false
     },
@@ -312,8 +312,7 @@ export default {
       return this.currentTab === step ? 'stepSelected' : ''
     },
     setCurrentTab(tab) {
-      console.log('setCurrentTab', { projects: this.defaultProject })
-      return (this.currentTab = tab)
+      this.currentTab = tab
     },
     setCurrentFilter(filter) {
       this.currentFilter = filter
@@ -329,12 +328,17 @@ export default {
     },
     async listProjects() {
       await this.$store.dispatch('project/listProjects')
-      console.log('listProjects', { projectList: this.projectList })
+      if (Object.values(this.projectList).length > 0) {
+        const [[, { id }]] = Object.entries(this.projectList)
+        this.currentProjectId = id
+      }
     },
     async createProjectAndUploadFiles(file) {
       this.$store.dispatch('project/clear')
       console.log('Create the project', { file, projectName: this.editingProject })
       const { id: projectId } = await this.$store.dispatch('project/create', { name: this.editingProject })
+      this.currentProjectId = projectId
+      this.editMode = false
       console.log('Create the Image Bundle', { file, projectId })
       const { id: bundleId } = await this.$store.dispatch('project/createImageBundle', {
         id: projectId,
@@ -342,13 +346,6 @@ export default {
       })
       console.log('Start pooling the bundle so we know when its ready to show the images', { bundleId })
       this.$store.dispatch('project/pollImageBundle', { bundleId, projectId })
-      this.$store.dispatch('project/pollProject', { id: projectId })
-      // const testBundle = await this.$store.dispatch('project/getImageBundle', { projectId, bundleId })
-      // console.log('We show images', { testBundle })
-      // this.currentImages = await this.$store.dispatch('project/getImages', { id: projectId })
-      // console.log('start pooling on the project to know when its ready to show train and play')
-      // await get Project
-      // console.log('enable train and play')
     },
     injectImages() {
       this.images.push(
@@ -377,11 +374,10 @@ export default {
       )
     },
     createNewProject() {
-      console.log('createNewProject', { myVueDropzone: this.$refs.myVueDropzone.removeAllFiles() })
       this.$refs.myVueDropzone.removeAllFiles()
       this.editMode = true
-      this.images = []
       this.currentTab = 'label'
+      this.showLoading = false
     }
   }
 }
@@ -405,6 +401,8 @@ export default {
       .sidebarButton {
         width: 100%;
         margin-bottom: 8px;
+        text-align: left;
+        justify-content: left !important;
       }
 
       .stepSelected {
@@ -415,7 +413,6 @@ export default {
 
       .sidebarSectionHeader {
         font-weight: bold;
-        text-align: center;
         margin-top: 18px;
 
         .sidebarTitle {
@@ -460,30 +457,28 @@ export default {
           }
         }
       }
+    }
+  }
 
-      .accuracyTabContainer {
-        .imageContainer {
-          position: relative;
+  .imageContainer {
+    position: relative;
 
-          .image {
-            border-radius: 10px;
-            margin-right: 12px;
-            margin-bottom: 12px;
-          }
+    .image {
+      border-radius: 10px;
+      margin-right: 12px;
+      margin-bottom: 12px;
+    }
 
-          .accuracy {
-            position: absolute;
-            bottom: 10px;
-            color: white;
-            right: 20px;
-            padding: 4px;
-            border-radius: 10px;
-            min-width: 50px;
-            text-align: center;
-            -webkit-text-stroke: 0.4px $brand-light-grey;
-          }
-        }
-      }
+    .accuracy {
+      position: absolute;
+      bottom: 10px;
+      color: white;
+      right: 20px;
+      padding: 4px;
+      border-radius: 10px;
+      min-width: 50px;
+      text-align: center;
+      -webkit-text-stroke: 0.4px $brand-light-grey;
     }
   }
 }

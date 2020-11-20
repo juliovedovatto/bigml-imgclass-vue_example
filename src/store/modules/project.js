@@ -10,7 +10,8 @@ export default {
     },
     currentImages: {
       // selected project images
-    }
+    },
+    currentImageBundle: {}
   },
   getters: {
     projectList(state) {
@@ -18,6 +19,9 @@ export default {
     },
     currentProject(state) {
       return state.currentProject
+    },
+    currentImageBundle(state) {
+      return state.currentImageBundle
     },
     currentImages(state) {
       return state.currentImages
@@ -54,9 +58,10 @@ export default {
       commit('setProject', data)
       return data
     },
-    async createImageBundle(_, payload) {
+    async createImageBundle({ commit }, payload) {
       const { id, file } = payload
       const { data } = await Project.createImageBundle(id, file)
+      commit('setCurrentImageBundle', data)
       return data
     },
     async update({ commit }, payload) {
@@ -76,23 +81,24 @@ export default {
       const data = await Project.getImageBundle(projectId, bundleId)
       return data
     },
-    pollImageBundle({ dispatch }, payload) {
+    pollImageBundle({ dispatch, commit }, payload) {
       const { bundleId, projectId } = payload
       async function checkIfReady() {
-        const {
-          data: { status }
-        } = await dispatch('getImageBundle', { projectId, bundleId })
+        const { data = {} } = await dispatch('getImageBundle', { projectId, bundleId })
+        const { status } = data
         if (status === 'READY') {
           console.log('Bundle is ready')
           dispatch('listProjects')
           dispatch('listImagesFromProject', { id: projectId })
-          clearInterval(pool)
+          dispatch('pollProject', { id: projectId })
+          commit('setCurrentImageBundle', data)
+          clearInterval(poll)
         } else {
           console.log('Bundle isnt ready yet', { status })
         }
       }
       checkIfReady()
-      const pool = setInterval(checkIfReady, 5000)
+      const poll = setInterval(checkIfReady, 5000)
     },
     pollProject({ commit, dispatch }, payload) {
       const { id } = payload
@@ -103,13 +109,13 @@ export default {
           console.log('Project is ready')
           dispatch('listImagesFromProject', { id })
           commit('setProject', project)
-          clearInterval(pool)
+          clearInterval(poll)
         } else {
           console.log('Project isnt ready yet', { status })
         }
       }
       checkIfReady()
-      const pool = setInterval(checkIfReady, 5000)
+      const poll = setInterval(checkIfReady, 5000)
     }
   },
   mutations: {
@@ -125,6 +131,7 @@ export default {
     clear(state) {
       state.currentProject = {}
       state.currentImages = {}
+      state.currentImageBundle = {}
     },
     setCurrentProject(state, currentProject = {}) {
       if (!currentProject?.id) {
@@ -141,6 +148,13 @@ export default {
       state.currentImages = Object.assign({}, state.currentImages, {
         [currentImage.id]: currentImage
       })
+    },
+    setCurrentImageBundle(state, currentImageBundle = {}) {
+      if (!currentImageBundle?.id) {
+        return
+      }
+
+      state.currentImageBundle = Object.assign({}, currentImageBundle)
     },
     // setImage(state, project = {}) {
     //   if (!image?.id) {

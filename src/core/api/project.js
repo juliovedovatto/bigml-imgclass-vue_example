@@ -43,11 +43,9 @@ class Project extends API {
   }
 
   async createImageBundle(id, data = {}) {
-    // const formData2 = objectToFormData(data)
     const formData = new FormData()
     formData.append('id', id)
     formData.append('file', data)
-    console.log('createImageBundle', { id, data, formData, entries: [...formData.entries()] })
     return await this.request.post(`/projects/${id}/image-bundles/`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
