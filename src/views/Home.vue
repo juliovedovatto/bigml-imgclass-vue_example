@@ -124,6 +124,7 @@
                         lazy-src
                         :src="img.file"
                         max-width="250"
+                        min-height="200"
                         max-height="250"
                       )
                         .accuracy(style="background-color: rgba(0,0,0,.5)") {{ img.label }}
@@ -157,6 +158,7 @@
                         lazy-src
                         :src="img.file"
                         max-width="250"
+                        min-height="200"
                         max-height="250"
                       )
                         .accuracy( :style="`background: linear-gradient(90deg, rgba(168, 201, 16, 1) ${Math.floor(img.label_probability * 100)}%, rgba(168, 201, 16, .6) ${Math.floor(img.label_probability * 100)}%);`" ) {{ img.predicted_label }}
@@ -168,6 +170,7 @@
                         lazy-src
                         :src="img.file"
                         max-width="250"
+                        min-height="200"
                         max-height="250"
                       )
                         .accuracy( :style="`background: linear-gradient(90deg, rgba(239, 83, 80, 1) ${Math.floor(img.label_probability * 100)}%, rgba(239, 83, 80, .6) ${Math.floor(img.label_probability * 100)}%);`") {{ img.predicted_label }}
@@ -232,6 +235,7 @@ export default {
     shouldShowDropzone() {
       if (this.showLoading) return false
       if (this.editMode || Object.values(this.projectList).length === 0) return true
+      if (!this.editMode) return false
       return true
     },
     onEditMode() {
@@ -269,10 +273,18 @@ export default {
       return imagesByLabels.filter(img => img.label === this.currentFilter)
     },
     correctImages() {
-      return Object.values(this.currentImages).filter(image => image.label === image.predicted_label)
+      const imagesByLabels = Object.values(this.currentImages).filter(image => image.label === image.predicted_label)
+      if (this.currentFilter === 'all') {
+        return imagesByLabels
+      }
+      return imagesByLabels.filter(img => img.predicted_label === this.currentFilter)
     },
     incorrectImages() {
-      return Object.values(this.currentImages).filter(image => image.label !== image.predicted_label)
+      const imagesByLabels = Object.values(this.currentImages).filter(image => image.label !== image.predicted_label)
+      if (this.currentFilter === 'all') {
+        return imagesByLabels
+      }
+      return imagesByLabels.filter(img => img.predicted_label === this.currentFilter)
     }
   },
   watch: {
