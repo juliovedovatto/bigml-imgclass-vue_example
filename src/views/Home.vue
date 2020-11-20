@@ -17,6 +17,8 @@
     "uploadDescription": "To start training you model, import and label some images.",
     "loadingDescription": "Uploading images to BigML",
     "noImagesWithLabel": "No images predicted with the ",
+    "noCorrectImages": "No images correctly predicted.",
+    "noIncorrectImages": "No images incorrectly predicted.",
     "label": "label",
     "correct": "Correct",
     "incorrect": "Incorrect"
@@ -154,9 +156,9 @@
                 )
             .accuracyTabContainer(v-show="shouldShowTab('train')")
               div(v-if="hasImages" style="height: 100%")
-                div.d-flex.flex-column(v-if="correctImages.length > 0")
+                div.d-flex.flex-column()
                   h2 {{ $t('correct') }}
-                  div.d-flex
+                  div.d-flex(v-if="correctImages.length > 0")
                     .imageContainer(v-for="img, index in correctImages")
                       v-img.image(
                         lazy-src
@@ -166,13 +168,14 @@
                         max-height="250"
                       )
                         .accuracy( :style="`background: linear-gradient(90deg, rgba(168, 201, 16, 1) ${Math.floor(img.label_probability * 100)}%, rgba(168, 201, 16, .6) ${Math.floor(img.label_probability * 100)}%);`" ) {{ img.predicted_label }}
-                .d-flex(v-else class="justify-center align-center" style="height: 100%")
-                  v-alert(type="warning" outlined) {{ $t('noImagesWithLabel')}}
-                    span(style="font-weight: bold; text-decoration: underline;") {{ currentFilter }}
-                    |  {{ $t('label') }}
-                div.d-flex.flex-column(v-if="incorrectImages.length > 0")
+                  .d-flex(v-else class="justify-center align-center" style="height: 100%")
+                    v-alert(type="warning" outlined v-if="currentFilter !== 'all'") {{ $t('noImagesWithLabel')}}
+                      span(style="font-weight: bold; text-decoration: underline;") {{ currentFilter }}
+                      |  {{ $t('label') }}
+                    v-alert(type="warning" outlined v-else) {{ $t('noCorrectImages') }}
+                div.d-flex.flex-column()
                   h2 {{ $t('incorrect') }}
-                  div.d-flex(style="height: 100%")
+                  div.d-flex(style="height: 100%" v-if="incorrectImages.length > 0")
                     .imageContainer(v-for="img, index in incorrectImages")
                       v-img.image(
                         lazy-src
@@ -182,10 +185,11 @@
                         max-height="250"
                       )
                         .accuracy( :style="`background: linear-gradient(90deg, rgba(239, 83, 80, 1) ${Math.floor(img.label_probability * 100)}%, rgba(239, 83, 80, .6) ${Math.floor(img.label_probability * 100)}%);`") {{ img.predicted_label }}
-                .d-flex(v-else class="justify-center align-center" style="height: 100%")
-                  v-alert(type="warning" outlined) {{ $t('noImagesWithLabel')}}
-                    span(style="font-weight: bold; text-decoration: underline;") {{ currentFilter }}
-                    |  {{ $t('label') }}
+                  .d-flex(v-else class="justify-center align-center" style="height: 100%")
+                    v-alert(type="warning" outlined v-if="currentFilter !== 'all'") {{ $t('noImagesWithLabel')}}
+                      span(style="font-weight: bold; text-decoration: underline;") {{ currentFilter }}
+                      |  {{ $t('label') }}
+                    v-alert(type="warning" outlined v-else) {{ $t('noIncorrectImages') }}
             .accuracyTabContainer(v-show="shouldShowTab('play')")
               div(style="width: 100%; height: 100%;")
                 div(style="width: 100%; height: 100%;")
@@ -266,12 +270,6 @@ export default {
       return Object.values(this.projectList).length === 0 && !this.showLoading
     },
     labels() {
-      const foo = [...new Set(Object.values(this.currentImages).map(({ label }) => label))]
-      console.log(foo)
-      foo.forEach(label => {
-        console.log(label)
-        this.currentProject.bigml_execution_status.evaluation_details.performance_per_class[label].accuracy
-      })
       return [...new Set(Object.values(this.currentImages).map(({ label }) => label))]
     },
     filteredImages() {
