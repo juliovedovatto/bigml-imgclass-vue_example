@@ -125,12 +125,12 @@
                 div(style="width: 100%; padding: 4px;")
                   .d-flex(class="align-center" style="width: 100%")
                     div(style="flex: 1") {{ $t('buttons.allImages') }}
-                    div {{ Object.values(currentImages).length }}
+                    div {{ getAllLabelNumber() }}
                   v-progress-linear(
                     v-if="currentProject.status === 'READY'"
                     rounded
                     style="margin-top: 4px;"
-                    value="100"
+                    :value="getAllLabelAccuracy()"
                     :color="currentTab !== 'play' && shouldOutlineButton('all') ? 'primary' : 'white'"
                     height="6"
                   )
@@ -405,6 +405,19 @@ export default {
     this.listProjects()
   },
   methods: {
+    getAllLabelNumber() {
+      const { currentImages, currentTab } = this
+      const totalImages = Object.values(currentImages).length
+      if (currentTab === 'label') {
+        return Object.values(currentImages).length
+      }
+      if (currentTab === 'train' || currentTab === 'play') {
+        const totalCorrectImages = Object.values(currentImages).filter(image => image.label === image.predicted_label)
+          .length
+        console.log('label', { totalCorrectImages, totalImages })
+        return `${Math.floor((totalCorrectImages * 100) / totalImages)}%`
+      }
+    },
     getLabelNumber(label) {
       const totalImagesWithLabel = Object.values(this.currentImages).filter(img => img.label === label).length
       const totalCorrectImages = Object.values(this.currentImages).filter(
@@ -414,14 +427,26 @@ export default {
         return totalImagesWithLabel
       }
       if (this.currentTab === 'train' || this.currentTab === 'play') {
-        return `${(totalCorrectImages * 100) / totalImagesWithLabel}%`
+        return `${Math.floor((totalCorrectImages * 100) / totalImagesWithLabel)}%`
+      }
+    },
+    getAllLabelAccuracy() {
+      const { currentImages, currentTab } = this
+      const totalImages = Object.values(currentImages).length
+      if (currentTab === 'label') {
+        return 100
+      }
+      if (currentTab === 'train' || currentTab === 'play') {
+        const totalCorrectImages = Object.values(currentImages).filter(image => image.label === image.predicted_label)
+          .length
+        console.log('label', { totalCorrectImages, totalImages })
+        return Math.floor((totalCorrectImages * 100) / totalImages)
       }
     },
     getLabelAccuracy(label) {
       const { currentTab, currentImages } = this
       const totalImagesWithLabel = Object.values(currentImages).filter(img => img.label === label).length
       const totalImages = Object.values(currentImages).length
-      console.log('getLabelAccuracy', { totalImagesWithLabel, totalImages, currentTab, label })
       if (currentTab === 'label') {
         return (totalImagesWithLabel * 100) / totalImages
       }
@@ -429,12 +454,8 @@ export default {
         const totalCorrectImages = Object.values(currentImages).filter(
           img => img.label === label && img.predicted_label === label
         ).length
-        return (totalCorrectImages * 100) / totalImagesWithLabel
+        return Math.floor((totalCorrectImages * 100) / totalImagesWithLabel)
       }
-      const labelAccuracy = this.currentProject?.bigml_execution_status?.evaluation_details?.performance_per_class[
-        label
-      ]?.accuracy
-      return Math.floor((labelAccuracy || 0) * 100)
     },
     disableEditMode() {
       const [[, { id }]] = Object.entries(this.projectList)
