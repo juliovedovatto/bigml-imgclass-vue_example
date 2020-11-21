@@ -68,6 +68,10 @@ class Project extends API {
     return await this.request.get(`/projects/${projectId}/predict-image/${id}/`)
   }
 
+  async listPredictedImages(projectId) {
+    return await this.request.get(`/projects/${projectId}/predict-image/`)
+  }
+
   async deleteImageBundle(projectId, id) {
     return await this.request.delete(`/projects/${projectId}/images-bundle/${id}/`)
   }

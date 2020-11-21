@@ -96,6 +96,7 @@ export default {
       commit('setCurrentProject', projects[id])
       commit('clearImagesFromProject')
       dispatch('listImagesFromProject', { id })
+      dispatch('listPredictedImages', { id })
     },
     async listImagesFromProject({ commit }, payload) {
       const { id } = payload
@@ -232,6 +233,13 @@ export default {
       }
 
       state.currentPredictedImage = Object.assign({}, currentPredictedImage)
+    },
+    setCurrentPredictedImageFromList(state, id) {
+      if (!id) {
+        return
+      }
+
+      state.currentPredictedImage = Object.assign({}, state.currentPredictedImageList[id])
     },
     clearPredictedImages(state) {
       state.currentPredictedImageList = {}

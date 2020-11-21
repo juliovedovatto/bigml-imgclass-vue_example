@@ -225,7 +225,7 @@
                   max-height="250"
                 )
               div(
-                style="height: 100%; width: 100%"
+                style="height: 100%; width: 100%; overflow-y: scroll"
                 v-show="Object.values(currentPredictedImageList).length > 0"
               )
                 v-img(
@@ -235,6 +235,7 @@
                   max-width="250"
                   min-height="200"
                   max-height="250"
+                  @click="currentPredictedImageIdFromList = img.id"
                 )
                 //-   v-img.image(
                 //-     lazy-src
@@ -282,6 +283,7 @@ export default {
         maxFiles: 1
       },
       currentProjectId: '',
+      currentPredictedImageIdFromList: '',
       editMode: false,
       currentTab: 'label',
       currentFilter: 'all',
@@ -351,6 +353,9 @@ export default {
   watch: {
     currentProjectId(id) {
       this.$store.dispatch('project/setCurrentProject', { id })
+    },
+    currentPredictedImageIdFromList(id) {
+      this.$store.dispatch('project/setCurrentPredictedImageFromList', { id })
     },
     currentPredictedImage(newVal) {
       console.log('Watch', { newVal })
