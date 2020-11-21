@@ -136,7 +136,7 @@ export default {
       async function checkIfReady() {
         const { data = {} } = await dispatch('getImageBundle', { projectId, bundleId })
         const { status } = data
-        if (status === 'READY') {
+        if (status === 'UPLOADING_TO_BIGML') {
           console.log('Bundle is ready')
           dispatch('listProjects')
           dispatch('listImagesFromProject', { id: projectId })

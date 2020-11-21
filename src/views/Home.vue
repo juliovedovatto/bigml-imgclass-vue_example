@@ -68,49 +68,84 @@
                 style="text-align: left;"
                 color="#8C98BF"
                 text
-              ) {{ $t('buttons.label') }}
+              ) 
+                .d-flex(class="justify-center align-center" style="width: 100%")
+                  .d-flex(class="align-center" style="flex: 1") 
+                    v-icon(style="margin-right: 4px;") mdi-square-edit-outline
+                    | {{ $t('buttons.label') }}
+                  v-progress-circular(
+                    indeterminate
+                    color="#8C98BF"
+                    size="24"
+                    width="2"
+                    v-if="showLoading && currentImageBundle.status !== 'UPLOADING_TO_BIGML'"
+                  )
               v-btn.sidebarButton(
                 :class="isStepSelected('train')"
                 @click="setCurrentTab('train')"
                 :disabled="currentProject.status !== 'READY' || editMode"
-                :loading="currentImageBundle.status === 'READY' && (currentProject.status != null && currentProject.status !== 'READY')"
                 color="#8C98BF"
                 text
-              ) {{ $t('buttons.train') }}
+              )
+                .d-flex(class="justify-center align-center" style="width: 100%")
+                  .d-flex(class="align-center" style="flex: 1") 
+                    v-icon(style="margin-right: 4px;") mdi-checkbox-marked-outline
+                    | {{ $t('buttons.train') }}
+                  v-progress-circular(
+                    indeterminate
+                    color="#8C98BF"
+                    size="24"
+                    width="2"
+                    v-if="currentImageBundle.status === 'UPLOADING_TO_BIGML' && (currentProject.status != null && currentProject.status !== 'READY')"
+                  )
               v-btn.sidebarButton(
                 :class="isStepSelected('play')"
                 @click="setCurrentTab('play')"
                 :disabled="currentProject.status !== 'READY' || editMode"
                 color="#8C98BF"
                 text
-              ) {{ $t('buttons.play') }}
+              )
+                .d-flex(class="justify-center align-center" style="width: 100%")
+                  .d-flex(class="align-center" style="flex: 1") 
+                    v-icon(style="margin-right: 4px;") mdi-creation
+                    | {{ $t('buttons.play') }}
+                  //- v-progress-circular(
+                  //-   indeterminate
+                  //-   color="#8C98BF"
+                  //-   v-if="currentImageBundle.status === 'UPLOADING_TO_BIGML' && (currentProject.status != null && currentProject.status !== 'READY')"
+                  //- )
             .sidebarSectionHeader(v-if="hasImages")
               v-btn.sidebarButton(
-                :outlined="currentTab !== 'play' && shouldOutlineButton('all')"
+                :outlined="!editMode && shouldOutlineButton('all')"
                 @click="setCurrentFilter('all')"
                 color="primary"
                 class="white--text"
-                :disabled="currentTab === 'play' || editMode"
+                :disabled="editMode"
               ) 
                 div(style="width: 100%; padding: 4px;")
-                  div {{ $t('buttons.allImages') }}
+                  .d-flex(class="align-center" style="width: 100%")
+                    div(style="flex: 1") {{ $t('buttons.allImages') }}
+                    div {{ Object.values(currentImages).length }}
                   v-progress-linear(
                     v-if="currentProject.status === 'READY'"
-                    rounded style="margin-top: 4px;"
-                    :value="Math.floor(currentProject.bigml_execution_status.evaluation_details.performance.accuracy * 100)"
+                    rounded
+                    style="margin-top: 4px;"
+                    value="100"
                     :color="currentTab !== 'play' && shouldOutlineButton('all') ? 'primary' : 'white'"
                     height="6"
                   )
               v-btn.sidebarButton(
                 v-for="label in labels"
-                :outlined="(currentTab !== 'play' && !editMode) && shouldOutlineButton(label)"
+                :outlined="!editMode && shouldOutlineButton(label)"
                 @click="setCurrentFilter(label)"
                 color="primary"
                 class="white--text"
-                :disabled="currentTab === 'play' || editMode"
+                :disabled="editMode"
               )
                 div(style="width: 100%; padding: 4px;")
-                    div {{ label }}
+                    .d-flex(class="align-center" style="width: 100%")
+                      div(style="flex: 1") {{ label }}
+                      div {{ getLabelNumber(label) }}
                     v-progress-linear(
                       v-if="currentProject.status === 'READY'"
                       rounded
@@ -145,7 +180,7 @@
                 ref="myVueDropzone"
               )
               .loadingSection(
-                v-if="showLoading && currentImageBundle.status !== 'READY'"
+                v-if="showLoading && currentImageBundle.status !== 'UPLOADING_TO_BIGML'"
                 class="d-flex justify-center align-center flex-column"
               )
                 .loadingDescription {{ $t('loadingDescription') }}
@@ -169,10 +204,10 @@
                       )
                         .accuracy( :style="`background: linear-gradient(90deg, rgba(168, 201, 16, 1) ${Math.floor(img.label_probability * 100)}%, rgba(168, 201, 16, .6) ${Math.floor(img.label_probability * 100)}%);`" ) {{ img.predicted_label }}
                   .d-flex(v-else class="justify-center align-center" style="height: 100%")
-                    v-alert(type="warning" outlined v-if="currentFilter !== 'all'") {{ $t('noImagesWithLabel')}}
+                    v-alert(type="primary" outlined v-if="currentFilter !== 'all'") {{ $t('noImagesWithLabel')}}
                       span(style="font-weight: bold; text-decoration: underline;") {{ currentFilter }}
                       |  {{ $t('label') }}
-                    v-alert(type="warning" outlined v-else) {{ $t('noCorrectImages') }}
+                    v-alert(type="primary" outlined v-else) {{ $t('noCorrectImages') }}
                 div.d-flex.flex-column()
                   h2 {{ $t('incorrect') }}
                   div.d-flex(style="height: 100%" v-if="incorrectImages.length > 0")
@@ -186,10 +221,10 @@
                       )
                         .accuracy( :style="`background: linear-gradient(90deg, rgba(239, 83, 80, 1) ${Math.floor(img.label_probability * 100)}%, rgba(239, 83, 80, .6) ${Math.floor(img.label_probability * 100)}%);`") {{ img.predicted_label }}
                   .d-flex(v-else class="justify-center align-center" style="height: 100%")
-                    v-alert(type="warning" outlined v-if="currentFilter !== 'all'") {{ $t('noImagesWithLabel')}}
+                    v-alert(type="primary" outlined v-if="currentFilter !== 'all'") {{ $t('noImagesWithLabel')}}
                       span(style="font-weight: bold; text-decoration: underline;") {{ currentFilter }}
                       |  {{ $t('label') }}
-                    v-alert(type="warning" outlined v-else) {{ $t('noIncorrectImages') }}
+                    v-alert(type="primary" outlined v-else) {{ $t('noIncorrectImages') }}
             .accuracyTabContainer(v-show="shouldShowTab('play')")
               div(style="width: 100%; height: 100%;" v-show="!showPredictLoading && Object.keys(currentPredictedImage).length === 0")
                 div(style="width: 100%; height: 100%;")
@@ -204,7 +239,7 @@
                   )
               div(
                 style="height: 100%"
-                v-if="currentPredictedImage.status !== 'READY' && showPredictLoading"
+                v-if="currentPredictedImage.status !== 'UPLOADING_TO_BIGML' && showPredictLoading"
                 class="d-flex justify-center align-center flex-column"
               )
                 div(style="margin-bottom: 20px;") {{ $t('loadingDescription') }}
@@ -370,7 +405,32 @@ export default {
     this.listProjects()
   },
   methods: {
+    getLabelNumber(label) {
+      const totalImagesWithLabel = Object.values(this.currentImages).filter(img => img.label === label).length
+      const totalCorrectImages = Object.values(this.currentImages).filter(
+        img => img.label === label && img.predicted_label === label
+      ).length
+      if (this.currentTab === 'label') {
+        return totalImagesWithLabel
+      }
+      if (this.currentTab === 'train' || this.currentTab === 'play') {
+        return `${(totalCorrectImages * 100) / totalImagesWithLabel}%`
+      }
+    },
     getLabelAccuracy(label) {
+      const { currentTab, currentImages } = this
+      const totalImagesWithLabel = Object.values(currentImages).filter(img => img.label === label).length
+      const totalImages = Object.values(currentImages).length
+      console.log('getLabelAccuracy', { totalImagesWithLabel, totalImages, currentTab, label })
+      if (currentTab === 'label') {
+        return (totalImagesWithLabel * 100) / totalImages
+      }
+      if (currentTab === 'train' || currentTab === 'progress') {
+        const totalCorrectImages = Object.values(currentImages).filter(
+          img => img.label === label && img.predicted_label === label
+        ).length
+        return (totalCorrectImages * 100) / totalImagesWithLabel
+      }
       const labelAccuracy = this.currentProject?.bigml_execution_status?.evaluation_details?.performance_per_class[
         label
       ]?.accuracy
