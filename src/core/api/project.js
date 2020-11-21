@@ -53,6 +53,21 @@ class Project extends API {
     })
   }
 
+  async predictImage(id, data = {}) {
+    const formData = new FormData()
+    formData.append('id', id)
+    formData.append('file', data)
+    return await this.request.post(`/projects/${id}/predict-image/`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+  }
+
+  async getPredictedImage(projectId, id) {
+    return await this.request.get(`/projects/${projectId}/predict-image/${id}/`)
+  }
+
   async deleteImageBundle(projectId, id) {
     return await this.request.delete(`/projects/${projectId}/images-bundle/${id}/`)
   }

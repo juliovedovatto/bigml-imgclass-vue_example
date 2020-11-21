@@ -5,13 +5,11 @@ export default {
   namespaced: true,
   state: {
     projects: {},
-    currentProject: {
-      // selected project data
-    },
-    currentImages: {
-      // selected project images
-    },
-    currentImageBundle: {}
+    currentProject: {},
+    currentImages: {},
+    currentImageBundle: {},
+    currentPredictedImage: {},
+    currentPredictedImageList: {}
   },
   getters: {
     projectList(state) {
@@ -25,6 +23,12 @@ export default {
     },
     currentImages(state) {
       return state.currentImages
+    },
+    currentPredictedImage(state) {
+      return state.currentPredictedImage
+    },
+    currentPredictedImageList(state) {
+      return state.currentPredictedImageList
     }
   },
   actions: {
@@ -36,6 +40,50 @@ export default {
     },
     clear({ commit }) {
       commit('clear')
+    },
+    clearPredictedImages({ commit }) {
+      commit('clearPredictedImages')
+    },
+    clearCurrentPredictedImage({ commit }) {
+      commit('clearCurrentPredictedImage')
+    },
+    async predictImage(_, payload) {
+      const { id, file } = payload
+      const { data } = await Project.predictImage(id, file)
+      return data
+    },
+    async getPredictedImage(_, payload) {
+      const { projectId, id } = payload
+      const data = await Project.getPredictedImage(projectId, id)
+      return data
+    },
+    pollPredictedImage({ dispatch, commit }, payload) {
+      const { id, projectId } = payload
+      async function checkIfReady() {
+        const predictedImage = await dispatch('getPredictedImage', { id, projectId })
+        const { data = {} } = predictedImage
+        const { status } = data
+        if (status === 'READY') {
+          console.log('Image is predicted')
+          commit('setCurrentPredictedImage', data)
+          dispatch('listPredictedImages', { projectId })
+          clearInterval(poll)
+        } else if (status === 'ERROR') {
+          dispatch('alert/error', 'Sorry we had a problem predicting the image.', { root: true })
+          console.log('error', data)
+          commit('setCurrentPredictedImage', data)
+          clearInterval(poll)
+        } else {
+          console.log('Image isnt predicted yet', { status })
+        }
+      }
+      checkIfReady()
+      const poll = setInterval(checkIfReady, 5000)
+    },
+    async listPredictedImages({ commit }, payload) {
+      const { projectId } = payload
+      const { data } = await Project.listPredictedImages(projectId)
+      data.results.forEach(item => commit('setPredictedImage', item))
     },
     async listProjects({ commit }) {
       const { data } = await Project.list()
@@ -95,7 +143,7 @@ export default {
           commit('setCurrentImageBundle', data)
           clearInterval(poll)
         } else if (status === 'ERROR') {
-          dispatch('alert/error', 'Sorry we had a problem creating the image bundle.')
+          dispatch('alert/error', 'Sorry we had a problem creating the image bundle.', { root: true })
           clearInterval(poll)
         } else {
           console.log('Bundle isnt ready yet', { status })
@@ -115,7 +163,7 @@ export default {
           commit('setProject', project)
           clearInterval(poll)
         } else if (status === 'ERROR') {
-          dispatch('alert/error', 'Sorry we had a problem training the project.')
+          dispatch('alert/error', 'Sorry we had a problem training the project.', { root: true })
           clearInterval(poll)
         } else {
           console.log('Project isnt ready yet', { status })
@@ -135,10 +183,21 @@ export default {
         [project.id]: project
       })
     },
+    setPredictedImage(state, predictedImage = {}) {
+      if (!predictedImage?.id) {
+        return
+      }
+
+      state.currentPredictedImageList = Object.assign({}, state.currentPredictedImageList, {
+        [predictedImage.id]: predictedImage
+      })
+    },
     clear(state) {
       state.currentProject = {}
       state.currentImages = {}
       state.currentImageBundle = {}
+      state.currentPredictedImage = {}
+      state.currentPredictedImageList = {}
     },
     clearImagesFromProject(state) {
       state.currentImages = {}
@@ -165,6 +224,20 @@ export default {
       }
 
       state.currentImageBundle = Object.assign({}, currentImageBundle)
+    },
+
+    setCurrentPredictedImage(state, currentPredictedImage = {}) {
+      if (!currentPredictedImage?.id) {
+        return
+      }
+
+      state.currentPredictedImage = Object.assign({}, currentPredictedImage)
+    },
+    clearPredictedImages(state) {
+      state.currentPredictedImageList = {}
+    },
+    clearCurrentPredictedImage(state) {
+      state.currentPredictedImage = {}
     },
     // setImage(state, project = {}) {
     //   if (!image?.id) {

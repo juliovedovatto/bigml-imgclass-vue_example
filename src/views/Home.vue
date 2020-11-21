@@ -191,8 +191,51 @@
                       |  {{ $t('label') }}
                     v-alert(type="warning" outlined v-else) {{ $t('noIncorrectImages') }}
             .accuracyTabContainer(v-show="shouldShowTab('play')")
-              div(style="width: 100%; height: 100%;")
+              div(style="width: 100%; height: 100%;" v-show="!showPredictLoading && Object.keys(currentPredictedImage).length === 0")
                 div(style="width: 100%; height: 100%;")
+                  .d-flex(class="justify-center align-center" style="margin-top: 60px; margin-bottom: 20px;")
+                    h2 Select an image to predict
+                  vue-dropzone.drop(
+                    :options="dropzoneOptions"
+                    @vdropzone-file-added="uploadImageToPredict"
+                    @vdropzone-drop="showPredictLoading = true"
+                    id="predictDropzone"
+                    ref="myPredictVueDropzone"
+                  )
+              div(
+                style="height: 100%"
+                v-if="currentPredictedImage.status !== 'READY' && showPredictLoading"
+                class="d-flex justify-center align-center flex-column"
+              )
+                div(style="margin-bottom: 20px;") {{ $t('loadingDescription') }}
+                v-progress-circular(
+                  indeterminate
+                  color="primary"
+                  size="100" width="10"
+                )
+              div(
+                style="width: 100%"
+                v-show="currentPredictedImage.status  === 'READY'"
+              )
+                v-img(
+                  lazy-src
+                  :src="currentPredictedImage.file"
+                  max-width="250"
+                  min-height="200"
+                  max-height="250"
+                )
+              div(
+                style="height: 100%; width: 100%"
+                v-show="Object.values(currentPredictedImageList).length > 0"
+              )
+                v-img(
+                  v-for="img in Object.values(currentPredictedImageList)"
+                  lazy-src
+                  :src="img.file"
+                  max-width="250"
+                  min-height="200"
+                  max-height="250"
+                )
                 //-   v-img.image(
                 //-     lazy-src
                 //-     :src="playedImages[0]"
@@ -243,11 +286,19 @@ export default {
       currentTab: 'label',
       currentFilter: 'all',
       editingProject: 'Untitled',
-      showLoading: false
+      showLoading: false,
+      showPredictLoading: false
     }
   },
   computed: {
-    ...mapGetters('project', ['projectList', 'currentProject', 'currentImages', 'currentImageBundle']),
+    ...mapGetters('project', [
+      'projectList',
+      'currentProject',
+      'currentImages',
+      'currentImageBundle',
+      'currentPredictedImage',
+      'currentPredictedImageList'
+    ]),
     shouldShowDropzone() {
       if (this.showLoading) return false
       if (this.editMode || Object.values(this.projectList).length === 0) return true
@@ -300,6 +351,14 @@ export default {
   watch: {
     currentProjectId(id) {
       this.$store.dispatch('project/setCurrentProject', { id })
+    },
+    currentPredictedImage(newVal) {
+      console.log('Watch', { newVal })
+      if (newVal.status === 'ERROR') {
+        this.$refs.myPredictVueDropzone.removeAllFiles()
+        this.$store.dispatch('project/clearCurrentPredictedImage')
+        this.showPredictLoading = false
+      }
     }
   },
   created() {
@@ -356,6 +415,14 @@ export default {
       })
       console.log('Start pooling the bundle so we know when its ready to show the images', { bundleId })
       this.$store.dispatch('project/pollImageBundle', { bundleId, projectId })
+    },
+    async uploadImageToPredict(file) {
+      this.$store.dispatch('project/clearPredictedImages')
+      const projectId = this.currentProject.id
+      console.log('Predict the image', { file, projectId })
+      const { id } = await this.$store.dispatch('project/predictImage', { file, id: projectId })
+      console.log('Start polling the predicted image to show when ready', { id, projectId })
+      await this.$store.dispatch('project/pollPredictedImage', { id, projectId })
     },
     createNewProject() {
       this.$refs.myVueDropzone.removeAllFiles()
