@@ -278,7 +278,7 @@
                         v-icon mdi-close
               .d-flex(style="overflow-y: scroll; margin-top: 40px; padding: 8px;")
                 .imageContainer(
-                  v-for="img in Object.values(currentPredictedImageList).filter(img => img.status === 'READY')"
+                  v-for="img in filteredPredictedImages"
                   style="margin-right: 8px;"
                 )
                   v-img.image(
@@ -331,6 +331,15 @@ export default {
       'currentPredictedImage',
       'currentPredictedImageList'
     ]),
+    filteredPredictedImages() {
+      const { currentFilter, currentPredictedImageList } = this
+      if (currentFilter === 'all') {
+        return Object.values(currentPredictedImageList).filter(img => img.status === 'READY')
+      }
+      return Object.values(currentPredictedImageList).filter(
+        img => img.status === 'READY' && img.predicted_label === currentFilter
+      )
+    },
     shouldShowDropzone() {
       if (this.showLoading) return false
       if (this.editMode || Object.values(this.projectList).length === 0) return true
