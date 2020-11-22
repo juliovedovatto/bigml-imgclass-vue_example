@@ -291,6 +291,7 @@
                     max-height="250"
                     @click="$store.dispatch('project/setCurrentPredictedImageFromList', img.id)"
                   )
+                    .accuracy( :style="`background: linear-gradient(90deg, rgba(168, 201, 16, 1) ${Math.floor(img.label_probability * 100)}%, rgba(168, 201, 16, .6) ${Math.floor(img.label_probability * 100)}%);`" ) {{ img.predicted_label }}
 </template>
 
 <script>
