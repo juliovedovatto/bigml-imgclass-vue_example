@@ -16,6 +16,7 @@
     },
     "uploadDescription": "To start training you model, import and label some images.",
     "loadingDescription": "Uploading images to BigML",
+    "predictLoadingDescription": "Predicting image",
     "noImagesWithLabel": "No images predicted with the ",
     "noCorrectImages": "No images correctly predicted.",
     "noIncorrectImages": "No images incorrectly predicted.",
@@ -109,11 +110,13 @@
                   .d-flex(class="align-center" style="flex: 1") 
                     v-icon(style="margin-right: 4px;") mdi-creation
                     | {{ $t('buttons.play') }}
-                  //- v-progress-circular(
-                  //-   indeterminate
-                  //-   color="#8C98BF"
-                  //-   v-if="currentImageBundle.status === 'UPLOADING_TO_BIGML' && (currentProject.status != null && currentProject.status !== 'READY')"
-                  //- )
+                  v-progress-circular(
+                    indeterminate
+                    color="#8C98BF"
+                    size="24"
+                    width="2"
+                    v-if="currentPredictedImage.status !== 'READY' && currentPredictedImage.status != null"
+                  )
             .sidebarSectionHeader(v-if="hasImages" style="max-height: 200px; min-height: 200px; overflow-y: scroll")
               v-btn.sidebarButton(
                 :outlined="!editMode && shouldOutlineButton('all')"
@@ -195,7 +198,7 @@
             .accuracyTabContainer(v-show="shouldShowTab('train')")
               div(v-if="hasImages" style="height: 100%")
                 div.d-flex.flex-column()
-                  h2 {{ $t('correct') }}
+                  h2 {{ $t('correct') }} {{ currentFilter === 'all' ? getAllLabelAccuracy() : getLabelAccuracy(currentFilter) }}%
                   div.d-flex(v-if="correctImages.length > 0")
                     .imageContainer(v-for="img, index in correctImages")
                       v-img.image(
@@ -212,7 +215,7 @@
                       |  {{ $t('label') }}
                     v-alert(color="primary" outlined v-else) {{ $t('noCorrectImages') }}
                 div.d-flex.flex-column()
-                  h2 {{ $t('incorrect') }}
+                  h2 {{ $t('incorrect') }} {{ currentFilter === 'all' ? getAllLabelIncorrectImages() : getLabelIncorrectImages(currentFilter) }}%
                   div.d-flex(style="height: 100%" v-if="incorrectImages.length > 0")
                     .imageContainer(v-for="img, index in incorrectImages")
                       v-img.image(
@@ -229,8 +232,8 @@
                       |  {{ $t('label') }}
                     v-alert(color="primary" outlined v-else) {{ $t('noIncorrectImages') }}
             .accuracyTabContainer(v-show="shouldShowTab('play')")
-              div(style="width: 100%; height: 100%;" v-show="!showPredictLoading && Object.keys(currentPredictedImage).length === 0")
-                div(style="width: 100%; height: 100%;")
+              div(style="width: 100%;" v-show="Object.keys(currentPredictedImage).length === 0 && !showPredictLoading")
+                div(style="width: 100%;")
                   .d-flex(class="justify-center align-center" style="margin-top: 60px; margin-bottom: 20px;")
                     h2 Select an image to predict
                   vue-dropzone.drop(
@@ -241,70 +244,53 @@
                     ref="myPredictVueDropzone"
                   )
               div(
-                style="height: 100%"
-                v-if="currentPredictedImage.status !== 'READY' && showPredictLoading"
+                v-if="currentPredictedImage.status !== 'READY' && currentPredictedImage.status != null && showPredictLoading"
+                style="height: 100%;"
                 class="d-flex justify-center align-center flex-column"
               )
-                div(style="margin-bottom: 20px;") {{ $t('loadingDescription') }}
+                div(style="margin-bottom: 20px;") {{ $t('predictLoadingDescription') }}
                 v-progress-circular(
                   indeterminate
                   color="primary"
                   size="100" width="10"
                 )
               .d-flex(
-                style="width: 100%"
-                class="justify-center align-center"
-                v-show="currentPredictedImage.status  === 'READY'"
+                class="flex-column justify-center align-center"
+                v-if="currentPredictedImage.status === 'READY'"
               )
-                v-img(
-                  style="margin-top: 40px"
-                  contain
-                  lazy-src
-                  :src="currentPredictedImage.file"
-                  max-width="500"
-                  min-height="200"
-                  max-height="500"
-                )
-              .d-flex(
-                class="justify-center align center"
-                style="height: 100%; overflow-x: scroll"
-                v-show="Object.values(currentPredictedImageList).length > 0"
-              )
-                .imageContainer
-                  v-img(
-                    v-for="img in Object.values(currentPredictedImageList)"
+                .imageContainer(style="margin-top: 40px;")
+                  v-img.image(
                     lazy-src
-                    contain
+                    :src="currentPredictedImage.file"
+                    max-width="600"
+                    min-height="200"
+                    max-height="500"
+                  )
+                    .accuracy( :style="`background: linear-gradient(90deg, rgba(168, 201, 16, 1) ${Math.floor(currentPredictedImage.label_probability * 100)}%, rgba(168, 201, 16, .6) ${Math.floor(currentPredictedImage.label_probability * 100)}%);`" ) {{ currentPredictedImage.predicted_label }}
+                    div(style="position: absolute; top: 10px; right: 10px")
+                      v-btn(
+                        fab
+                        small
+                        color="#7B8290"
+                        dark
+                        @click="$store.dispatch('project/clearCurrentPredictedImage')"
+                      )
+                        v-icon mdi-close
+              .d-flex(style="overflow-y: scroll; margin-top: 40px; padding: 8px;")
+                .imageContainer(
+                  v-for="img in Object.values(currentPredictedImageList).filter(img => img.status === 'READY')"
+                  style="margin-right: 8px;"
+                )
+                  v-img.image(
+                    lazy-src
+                    class="predictedImage"
+                    :style="currentPredictedImage.id === img.id ? 'box-shadow: 0px 0px 0px 6px rgba(168, 201, 16, 1);': ''"
                     :src="img.file"
                     max-width="250"
                     min-height="200"
                     max-height="250"
-                    @click="currentPredictedImageIdFromList = img.id"
+                    @click="$store.dispatch('project/setCurrentPredictedImageFromList', img.id)"
                   )
-                //-   v-img.image(
-                //-     lazy-src
-                //-     :src="playedImages[0]"
-                //-     contains
-                //-     max-width="250"
-                //-     max-height="250"
-                //-   )
-                //- div
-                //-   v-sheet(max-width="700")
-                //-     v-slide-group(
-                //-       multiple
-                //-       show-arrows="desktop"
-                //-     )
-                //-       v-slide-item(
-                //-         v-for="img in playedImages"
-                //-         v-slot="{ active, toggle }"
-                //-       )
-                //-         v-img.ma-4(
-                //-           lazy-src
-                //-           :src="img"
-                //-           contains
-                //-           max-width="250"
-                //-           max-height="250"
-                //-         )
 </template>
 
 <script>
@@ -384,19 +370,26 @@ export default {
       if (this.currentFilter === 'all') {
         return imagesByLabels
       }
-      return imagesByLabels.filter(img => img.predicted_label === this.currentFilter)
+      return imagesByLabels.filter(
+        img => img.label === this.currentFilter && img.predicted_label === this.currentFilter
+      )
     },
     incorrectImages() {
       const imagesByLabels = Object.values(this.currentImages).filter(image => image.label !== image.predicted_label)
       if (this.currentFilter === 'all') {
         return imagesByLabels
       }
-      return imagesByLabels.filter(img => img.predicted_label === this.currentFilter)
+      return imagesByLabels.filter(
+        img => img.label === this.currentFilter && img.predicted_label !== this.currentFilter
+      )
     }
   },
   watch: {
     currentProjectId(id) {
+      this.$refs.myPredictVueDropzone.removeAllFiles()
       this.$store.dispatch('project/setCurrentProject', { id })
+      this.showPredictLoading = false
+      this.currentTab = 'label'
     },
     currentPredictedImageIdFromList(id) {
       this.$store.dispatch('project/setCurrentPredictedImageFromList', { id })
@@ -444,7 +437,7 @@ export default {
         }
 
         const totalCorrectImagesAsPercentage = Math.floor((totalCorrectImages * 100) / totalImages)
-        const totalIncorrectImagesAsPercentage = Math.floor((totalIncorrectImages * 100) / totalImages)
+        const totalIncorrectImagesAsPercentage = Math.ceil((totalIncorrectImages * 100) / totalImages)
 
         return `
         <div>
@@ -501,11 +494,32 @@ export default {
       if (currentTab === 'label') {
         return (totalImagesWithLabel * 100) / totalImages
       }
-      if (currentTab === 'train' || currentTab === 'progress') {
+      if (currentTab === 'train' || currentTab === 'play') {
         const totalCorrectImages = Object.values(currentImages).filter(
           img => img.label === label && img.predicted_label === label
         ).length
         return Math.floor((totalCorrectImages * 100) / totalImagesWithLabel)
+      }
+    },
+    getAllLabelIncorrectImages() {
+      const { currentImages, currentTab } = this
+      const totalImages = Object.values(currentImages).length
+      if (currentTab === 'train' || currentTab === 'play') {
+        const totalIncorrectImages = Object.values(currentImages).filter(image => image.label !== image.predicted_label)
+          .length
+        console.log('label', { totalIncorrectImages, totalImages })
+        return Math.ceil((totalIncorrectImages * 100) / totalImages)
+      }
+    },
+    getLabelIncorrectImages(label) {
+      const { currentTab, currentImages } = this
+      const totalImagesWithLabel = Object.values(currentImages).filter(img => img.label === label).length
+      if (currentTab === 'train' || currentTab === 'play') {
+        const totalIncorrectImages = Object.values(currentImages).filter(
+          img => img.label === label && img.predicted_label !== label
+        ).length
+        console.log('Incorrect', { label, totalIncorrectImages, totalImagesWithLabel })
+        return Math.ceil((totalIncorrectImages * 100) / totalImagesWithLabel)
       }
     },
     disableEditMode() {
@@ -572,9 +586,11 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.predictedImage:hover {
+  box-shadow: 0px 0px 0px 6px rgba(168, 201, 16, 0.6);
+}
 .container {
   height: 100%;
-
   .outerCard {
     padding: 16px;
     background-color: #f7f7f7;
@@ -671,6 +687,32 @@ export default {
       min-width: 50px;
       text-align: center;
       -webkit-text-stroke: 0.4px $brand-light-grey;
+    }
+  }
+}
+</style>
+
+<style lang="scss">
+.v-input {
+  .v-input__control {
+    .v-input__slot {
+      fieldset {
+        border-color: #8c98bf;
+      }
+      .v-select__slot {
+        .v-select__selections {
+          .v-select__selection {
+            color: #8c98bf;
+          }
+        }
+        .v-input__append-inner {
+          .v-input__icon {
+            .v-icon {
+              color: #8c98bf !important;
+            }
+          }
+        }
+      }
     }
   }
 }

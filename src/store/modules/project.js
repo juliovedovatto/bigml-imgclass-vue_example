@@ -63,15 +63,14 @@ export default {
         const predictedImage = await dispatch('getPredictedImage', { id, projectId })
         const { data = {} } = predictedImage
         const { status } = data
+        commit('setCurrentPredictedImage', data)
         if (status === 'READY') {
           console.log('Image is predicted')
-          commit('setCurrentPredictedImage', data)
           dispatch('listPredictedImages', { projectId })
           clearInterval(poll)
         } else if (status === 'ERROR') {
           dispatch('alert/error', 'Sorry we had a problem predicting the image.', { root: true })
           console.log('error', data)
-          commit('setCurrentPredictedImage', data)
           clearInterval(poll)
         } else {
           console.log('Image isnt predicted yet', { status })
@@ -79,6 +78,9 @@ export default {
       }
       checkIfReady()
       const poll = setInterval(checkIfReady, 5000)
+    },
+    setCurrentPredictedImageFromList({ commit }, payload) {
+      commit('setCurrentPredictedImageFromList', payload)
     },
     async listPredictedImages({ commit }, payload) {
       const { projectId } = payload
@@ -95,7 +97,10 @@ export default {
       const { projects } = state
       commit('setCurrentProject', projects[id])
       commit('clearImagesFromProject')
+      commit('clearCurrentPredictedImage')
+      commit('clearPredictedImages')
       dispatch('listImagesFromProject', { id })
+      dispatch('listPredictedImages', { projectId: id })
     },
     async listImagesFromProject({ commit }, payload) {
       const { id } = payload
@@ -238,7 +243,10 @@ export default {
         return
       }
 
+      console.log('setCurrentPredictedImageFromList', { id, image: state.currentPredictedImageList[id] })
+
       state.currentPredictedImage = Object.assign({}, state.currentPredictedImageList[id])
+      console.log('state', { assertion: Object.assign({}, state.currentPredictedImageList[id]) })
     },
     clearPredictedImages(state) {
       state.currentPredictedImageList = {}
