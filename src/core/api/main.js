@@ -1,10 +1,13 @@
-import { API_HOST, AUTH_COOKIES, UNAUTHORIZED_WHITELIST } from '@/core/config'
+import { API_HOST } from '@/core/config'
 import axios from 'axios'
+import axiosRequestHandler from 'axios-request-handler'
+import interceptors from './interceptors'
 import { objToParams } from '@/core/helpers/url'
-import { retrieveFromCookieStore } from '@/core/helpers/storage'
-import router from '@/router'
-import store from '@/store'
-import { t } from '@/core/helpers/i18n'
+
+export const POLLLING_TYPES = {
+  GET: 'get',
+  POST: 'post'
+}
 
 export default class API {
   constructor() {
@@ -13,38 +16,14 @@ export default class API {
       paramsSerializer: params => objToParams(params)
     })
 
-    this.request.interceptors.request.use(async config => {
-      const token = await retrieveFromCookieStore(AUTH_COOKIES.ACCESS_TOKEN)
+    interceptors?.request?.forEach(i => this.request.interceptors.request.use(...i))
+    interceptors?.response?.forEach(i => this.request.interceptors.response.use(...i))
+  }
 
-      config.headers.Authorization = (token && `Bearer ${token}`) || ''
+  poll(url, callback, params = {}, time = 3000, type = POLLLING_TYPES.GET) {
+    const instance = new axiosRequestHandler(url, { axiosInstance: this.request })
+    const requestType = (Object.values(POLLLING_TYPES).includes(type) && type) || POLLLING_TYPES.GET
 
-      return config
-    })
-
-    this.request.interceptors.response.use(
-      response => response,
-      async err => {
-        const { status = null } = err?.response || {}
-
-        if (status === 401) {
-          const { config } = err
-          const { url, __isRetryRequest } = config
-
-          if (!UNAUTHORIZED_WHITELIST.includes(url)) {
-            if (!__isRetryRequest) {
-              await store.dispatch('auth/refreshTokens')
-              return setTimeout(() => this.request(config), 300)
-            }
-
-            // TODO: show alert error
-            console.error(t('common.error.auth.not-valid'))
-
-            return router.push({ name: 'auth.logout' })
-          }
-        }
-
-        return Promise.reject(err)
-      }
-    )
+    instance.poll(time)[requestType](callback, { params })
   }
 }
