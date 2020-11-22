@@ -404,7 +404,6 @@ export default {
       this.$store.dispatch('project/setCurrentPredictedImageFromList', { id })
     },
     currentPredictedImage(newVal) {
-      console.log('Watch', { newVal })
       if (newVal.status === 'ERROR') {
         this.$refs.myPredictVueDropzone.removeAllFiles()
         this.$store.dispatch('project/clearCurrentPredictedImage')
@@ -467,7 +466,6 @@ export default {
       if (currentTab === 'train' || currentTab === 'play') {
         const totalCorrectImages = Object.values(currentImages).filter(image => image.label === image.predicted_label)
           .length
-        console.log('label', { totalCorrectImages, totalImages })
         return `${Math.floor((totalCorrectImages * 100) / totalImages)}%`
       }
     },
@@ -492,7 +490,6 @@ export default {
       if (currentTab === 'train' || currentTab === 'play') {
         const totalCorrectImages = Object.values(currentImages).filter(image => image.label === image.predicted_label)
           .length
-        console.log('label', { totalCorrectImages, totalImages })
         return Math.floor((totalCorrectImages * 100) / totalImages)
       }
     },
@@ -516,7 +513,6 @@ export default {
       if (currentTab === 'train' || currentTab === 'play') {
         const totalIncorrectImages = Object.values(currentImages).filter(image => image.label !== image.predicted_label)
           .length
-        console.log('label', { totalIncorrectImages, totalImages })
         return Math.ceil((totalIncorrectImages * 100) / totalImages)
       }
     },
@@ -527,7 +523,6 @@ export default {
         const totalIncorrectImages = Object.values(currentImages).filter(
           img => img.label === label && img.predicted_label !== label
         ).length
-        console.log('Incorrect', { label, totalIncorrectImages, totalImagesWithLabel })
         return Math.ceil((totalIncorrectImages * 100) / totalImagesWithLabel)
       }
     },
@@ -564,24 +559,19 @@ export default {
     },
     async createProjectAndUploadFiles(file) {
       this.$store.dispatch('project/clear')
-      console.log('Create the project', { file, projectName: this.editingProject })
       const { id: projectId } = await this.$store.dispatch('project/create', { name: this.editingProject })
       this.currentProjectId = projectId
       this.editMode = false
-      console.log('Create the Image Bundle', { file, projectId })
       const { id: bundleId } = await this.$store.dispatch('project/createImageBundle', {
         id: projectId,
         file
       })
-      console.log('Start pooling the bundle so we know when its ready to show the images', { bundleId })
       this.$store.dispatch('project/pollImageBundle', { bundleId, projectId })
     },
     async uploadImageToPredict(file) {
       this.$store.dispatch('project/clearPredictedImages')
       const projectId = this.currentProject.id
-      console.log('Predict the image', { file, projectId })
       const { id } = await this.$store.dispatch('project/predictImage', { file, id: projectId })
-      console.log('Start polling the predicted image to show when ready', { id, projectId })
       await this.$store.dispatch('project/pollPredictedImage', { id, projectId })
     },
     createNewProject() {

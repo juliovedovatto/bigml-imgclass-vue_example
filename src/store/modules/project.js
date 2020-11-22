@@ -65,15 +65,11 @@ export default {
         const { status } = data
         commit('setCurrentPredictedImage', data)
         if (status === 'READY') {
-          console.log('Image is predicted')
           dispatch('listPredictedImages', { projectId })
           clearInterval(poll)
         } else if (status === 'ERROR') {
           dispatch('alert/error', 'Sorry we had a problem predicting the image.', { root: true })
-          console.log('error', data)
           clearInterval(poll)
-        } else {
-          console.log('Image isnt predicted yet', { status })
         }
       }
       checkIfReady()
@@ -89,7 +85,6 @@ export default {
     },
     async listProjects({ commit }) {
       const { data } = await Project.list()
-      console.log('Listing Projects', { id: data?.results[0]?.id })
       data.results.forEach(item => commit('setProject', item))
     },
     setCurrentProject({ commit, dispatch, state }, payload) {
@@ -145,7 +140,6 @@ export default {
 
         switch (status) {
           case 'UPLOADING_TO_BIGML':
-            console.log('Bundle is ready')
             dispatch('listProjects')
             dispatch('listImagesFromProject', { id: projectId })
             dispatch('pollProject', { id: projectId })
@@ -157,7 +151,6 @@ export default {
             polling = false
             break
           default:
-            console.log('Bundle isnt ready yet', { status })
         }
 
         return polling
@@ -175,7 +168,6 @@ export default {
 
         switch (status) {
           case 'READY':
-            console.log('Project is ready')
             dispatch('listImagesFromProject', { id })
             commit('setProject', data)
             polling = false
@@ -185,7 +177,6 @@ export default {
             polling = false
             break
           default:
-            console.log('Project isnt ready yet', { status })
         }
 
         return polling
@@ -257,10 +248,7 @@ export default {
         return
       }
 
-      console.log('setCurrentPredictedImageFromList', { id, image: state.currentPredictedImageList[id] })
-
       state.currentPredictedImage = Object.assign({}, state.currentPredictedImageList[id])
-      console.log('state', { assertion: Object.assign({}, state.currentPredictedImageList[id]) })
     },
     clearPredictedImages(state) {
       state.currentPredictedImageList = {}
