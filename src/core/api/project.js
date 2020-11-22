@@ -26,6 +26,10 @@ class Project extends API {
     return await this.request.delete(`/projects/${id}/`)
   }
 
+  check(id, callback) {
+    this.poll(`/projects/${id}/`, callback)
+  }
+
   async listImages(id) {
     return await this.request.get(`/projects/${id}/images/`, { params: { limit: 1000 } })
   }
@@ -51,6 +55,10 @@ class Project extends API {
         'Content-Type': 'multipart/form-data'
       }
     })
+  }
+
+  async checkImageBundle(projectId, id, callback) {
+    this.poll(`/projects/${projectId}/image-bundles/${id}/`, callback)
   }
 
   async predictImage(id, data = {}) {

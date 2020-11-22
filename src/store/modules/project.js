@@ -137,45 +137,59 @@ export default {
     },
     pollImageBundle({ dispatch, commit }, payload) {
       const { bundleId, projectId } = payload
-      async function checkIfReady() {
-        const { data = {} } = await dispatch('getImageBundle', { projectId, bundleId })
+
+      Project.checkImageBundle(projectId, bundleId, response => {
+        let polling = true
+        const { data } = response
         const { status } = data
-        if (status === 'UPLOADING_TO_BIGML') {
-          console.log('Bundle is ready')
-          dispatch('listProjects')
-          dispatch('listImagesFromProject', { id: projectId })
-          dispatch('pollProject', { id: projectId })
-          commit('setCurrentImageBundle', data)
-          clearInterval(poll)
-        } else if (status === 'ERROR') {
-          dispatch('alert/error', 'Sorry we had a problem creating the image bundle.', { root: true })
-          clearInterval(poll)
-        } else {
-          console.log('Bundle isnt ready yet', { status })
+
+        switch (status) {
+          case 'UPLOADING_TO_BIGML':
+            console.log('Bundle is ready')
+            dispatch('listProjects')
+            dispatch('listImagesFromProject', { id: projectId })
+            dispatch('pollProject', { id: projectId })
+            commit('setCurrentImageBundle', data)
+            polling = false
+            break
+          case 'ERROR':
+            dispatch('alert/error', 'Sorry we had a problem creating the image bundle.', { root: true })
+            polling = false
+            break
+          default:
+            console.log('Bundle isnt ready yet', { status })
         }
-      }
-      checkIfReady()
-      const poll = setInterval(checkIfReady, 5000)
+
+        return polling
+      })
     },
     pollProject({ commit, dispatch }, payload) {
       const { id } = payload
-      async function checkIfReady() {
-        const project = await dispatch('getProject', { id })
-        const { status } = project
-        if (status === 'READY') {
-          console.log('Project is ready')
-          dispatch('listImagesFromProject', { id })
-          commit('setProject', project)
-          clearInterval(poll)
-        } else if (status === 'ERROR') {
-          dispatch('alert/error', 'Sorry we had a problem training the project.', { root: true })
-          clearInterval(poll)
-        } else {
-          console.log('Project isnt ready yet', { status })
+
+      Project.check(id, response => {
+        let polling = true
+        const { data } = response
+        const { status } = data
+
+        commit('setCurrentProject', data)
+
+        switch (status) {
+          case 'READY':
+            console.log('Project is ready')
+            dispatch('listImagesFromProject', { id })
+            commit('setProject', data)
+            polling = false
+            break
+          case 'ERROR':
+            dispatch('alert/error', 'Sorry we had a problem training the project.', { root: true })
+            polling = false
+            break
+          default:
+            console.log('Project isnt ready yet', { status })
         }
-      }
-      checkIfReady()
-      const poll = setInterval(checkIfReady, 5000)
+
+        return polling
+      })
     }
   },
   mutations: {

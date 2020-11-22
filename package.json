@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "axios": "^0.21.0",
+    "axios-request-handler": "github:Konnng/axios-request",
     "case": "^1.6.3",
     "core-js": "^3.6.5",
     "fsevents": "^2.2.1",
