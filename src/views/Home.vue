@@ -432,7 +432,7 @@ export default {
         if (totalCorrectImages === totalImages) {
           return `
             <div>
-              <span style="color: #82A11D;">100%</span> of images are predicted correctly
+              <span style="color: #82A11D;">100%</span> of images were predicted correctly
             </div>
           `
         }
@@ -440,7 +440,7 @@ export default {
         if (totalImages === totalIncorrectImages) {
           return `
             <div>
-              <span style="color: #FB3F17;">100%</span> of images are predicted incorrectly
+              <span style="color: #FB3F17;">100%</span> of images were predicted incorrectly
             </div>
           `
         }
@@ -450,10 +450,10 @@ export default {
 
         return `
         <div>
-          <span style="color: #82A11D;">${totalCorrectImagesAsPercentage}%</span> of images are predicted correctly
+          <span style="color: #82A11D;">${totalCorrectImagesAsPercentage}%</span> of images were predicted correctly
         </div>
         <div>
-          <span style="color: #FB3F17">${totalIncorrectImagesAsPercentage}%</span> of images are predicted incorrectly
+          <span style="color: #FB3F17">${totalIncorrectImagesAsPercentage}%</span> of images were predicted incorrectly
         </div>
         `
       }
