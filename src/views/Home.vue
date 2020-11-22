@@ -273,7 +273,7 @@
                         small
                         color="#7B8290"
                         dark
-                        @click="$store.dispatch('project/clearCurrentPredictedImage')"
+                        @click="$store.dispatch('project/clearCurrentPredictedImage'); $refs.myPredictVueDropzone.removeAllFiles(); showPredictLoading = false"
                       )
                         v-icon mdi-close
               .d-flex(style="overflow-y: scroll; margin-top: 40px; padding: 8px;")
