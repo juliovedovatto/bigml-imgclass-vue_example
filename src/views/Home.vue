@@ -114,7 +114,7 @@
                   //-   color="#8C98BF"
                   //-   v-if="currentImageBundle.status === 'UPLOADING_TO_BIGML' && (currentProject.status != null && currentProject.status !== 'READY')"
                   //- )
-            .sidebarSectionHeader(v-if="hasImages")
+            .sidebarSectionHeader(v-if="hasImages" style="max-height: 200px; min-height: 200px;")
               v-btn.sidebarButton(
                 :outlined="!editMode && shouldOutlineButton('all')"
                 @click="setCurrentFilter('all')"
@@ -131,12 +131,13 @@
                     rounded
                     style="margin-top: 4px;"
                     :value="getAllLabelAccuracy()"
-                    :color="currentTab !== 'play' && shouldOutlineButton('all') ? 'primary' : 'white'"
+                    :color="shouldOutlineButton('all') ? 'primary' : 'white'"
                     height="6"
                   )
               v-btn.sidebarButton(
                 v-for="label in labels"
                 :outlined="!editMode && shouldOutlineButton(label)"
+                style="text-transform: capitalize;"
                 @click="setCurrentFilter(label)"
                 color="primary"
                 class="white--text"
@@ -151,14 +152,16 @@
                       rounded
                       style="margin-top: 4px;"
                       :value="getLabelAccuracy(label)"
-                      :color="(currentTab !== 'play' && !editMode) && shouldOutlineButton(label) ? 'primary' : 'white'"
+                      :color="!editMode && shouldOutlineButton(label) ? 'primary' : 'white'"
                       height="6"
                     )
+            .sidebarSectionHeader
+              div(style="font-size: 20px; color: #7B8290;" v-html="getSidebarText()")
           v-card.contentCard(outlined)
             .uploadTabContainer(v-show="shouldShowTab('label')")
               div(v-if="hasImages && !editMode")
                 div.d-flex.flex-column(v-for="img in filteredImages" )
-                  h2 {{ img.label }}
+                  h2(style="text-transform: capitalize") {{ img.label }}
                   div.d-flex
                     .imageContainer(v-for="img, index in img.data")
                       v-img.image(
@@ -204,10 +207,10 @@
                       )
                         .accuracy( :style="`background: linear-gradient(90deg, rgba(168, 201, 16, 1) ${Math.floor(img.label_probability * 100)}%, rgba(168, 201, 16, .6) ${Math.floor(img.label_probability * 100)}%);`" ) {{ img.predicted_label }}
                   .d-flex(v-else class="justify-center align-center" style="height: 100%")
-                    v-alert(type="primary" outlined v-if="currentFilter !== 'all'") {{ $t('noImagesWithLabel')}}
+                    v-alert(color="primary" outlined v-if="currentFilter !== 'all'") {{ $t('noImagesWithLabel')}}
                       span(style="font-weight: bold; text-decoration: underline;") {{ currentFilter }}
                       |  {{ $t('label') }}
-                    v-alert(type="primary" outlined v-else) {{ $t('noCorrectImages') }}
+                    v-alert(color="primary" outlined v-else) {{ $t('noCorrectImages') }}
                 div.d-flex.flex-column()
                   h2 {{ $t('incorrect') }}
                   div.d-flex(style="height: 100%" v-if="incorrectImages.length > 0")
@@ -221,10 +224,10 @@
                       )
                         .accuracy( :style="`background: linear-gradient(90deg, rgba(239, 83, 80, 1) ${Math.floor(img.label_probability * 100)}%, rgba(239, 83, 80, .6) ${Math.floor(img.label_probability * 100)}%);`") {{ img.predicted_label }}
                   .d-flex(v-else class="justify-center align-center" style="height: 100%")
-                    v-alert(type="primary" outlined v-if="currentFilter !== 'all'") {{ $t('noImagesWithLabel')}}
+                    v-alert(color="primary" outlined v-if="currentFilter !== 'all'") {{ $t('noImagesWithLabel')}}
                       span(style="font-weight: bold; text-decoration: underline;") {{ currentFilter }}
                       |  {{ $t('label') }}
-                    v-alert(type="primary" outlined v-else) {{ $t('noIncorrectImages') }}
+                    v-alert(color="primary" outlined v-else) {{ $t('noIncorrectImages') }}
             .accuracyTabContainer(v-show="shouldShowTab('play')")
               div(style="width: 100%; height: 100%;" v-show="!showPredictLoading && Object.keys(currentPredictedImage).length === 0")
                 div(style="width: 100%; height: 100%;")
@@ -248,18 +251,20 @@
                   color="primary"
                   size="100" width="10"
                 )
-              div(
+              .d-flex(
                 style="width: 100%"
+                class="justify-center align-center"
                 v-show="currentPredictedImage.status  === 'READY'"
               )
                 v-img(
                   lazy-src
                   :src="currentPredictedImage.file"
-                  max-width="250"
+                  max-width="500"
                   min-height="200"
-                  max-height="250"
+                  max-height="500"
                 )
-              div(
+              .d-flex(
+                class="justify-center align center"
                 style="height: 100%; width: 100%; overflow-y: scroll"
                 v-show="Object.values(currentPredictedImageList).length > 0"
               )
@@ -405,6 +410,48 @@ export default {
     this.listProjects()
   },
   methods: {
+    getSidebarText() {
+      const { currentTab } = this
+      if ((currentTab === 'label' && Object.values(this.currentImages).length === 0) || this.editMode) {
+        return '<span style="color: #82A11D;">5</span> images per label needed to start training.'
+      }
+      if (this.currentProject.status === 'READY' && Object.values(this.currentImages).length) {
+        const { currentImages } = this
+        const totalImages = Object.values(currentImages).length
+        const totalCorrectImages = Object.values(currentImages).filter(image => image.label === image.predicted_label)
+          .length
+        const totalIncorrectImages = Object.values(currentImages).filter(image => image.label !== image.predicted_label)
+          .length
+
+        if (totalCorrectImages === totalImages) {
+          return `
+            <div>
+              <span style="color: #82A11D;">100%</span> of images are predicted correctly
+            </div>
+          `
+        }
+
+        if (totalImages === totalIncorrectImages) {
+          return `
+            <div>
+              <span style="color: #FB3F17;">100%</span> of images are predicted incorrectly
+            </div>
+          `
+        }
+
+        const totalCorrectImagesAsPercentage = Math.floor((totalCorrectImages * 100) / totalImages)
+        const totalIncorrectImagesAsPercentage = Math.floor((totalIncorrectImages * 100) / totalImages)
+
+        return `
+        <div>
+          <span style="color: #82A11D;">${totalCorrectImagesAsPercentage}%</span> of images are predicted correctly
+        </div>
+        <div>
+          <span style="color: #FB3F17">${totalIncorrectImagesAsPercentage}%</span> of images are predicted incorrectly
+        </div>
+        `
+      }
+    },
     getAllLabelNumber() {
       const { currentImages, currentTab } = this
       const totalImages = Object.values(currentImages).length
@@ -551,6 +598,7 @@ export default {
       .sidebarSectionHeader {
         font-weight: bold;
         margin-top: 18px;
+        overflow-y: scroll;
 
         .sidebarTitle {
           margin-bottom: 18px;

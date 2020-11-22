@@ -96,7 +96,6 @@ export default {
       commit('setCurrentProject', projects[id])
       commit('clearImagesFromProject')
       dispatch('listImagesFromProject', { id })
-      dispatch('listPredictedImages', { id })
     },
     async listImagesFromProject({ commit }, payload) {
       const { id } = payload
