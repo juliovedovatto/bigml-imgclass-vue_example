@@ -238,7 +238,7 @@
                     h2 Select an image to predict
                   vue-dropzone.drop(
                     :options="dropzoneOptions"
-                    @vdropzone-file-added="uploadImageToPredict"
+                    @vdropzone-file-added="predictDropzoneFileAddedHandler"
                     @vdropzone-drop="showPredictLoading = true"
                     id="predictDropzone"
                     ref="myPredictVueDropzone"
@@ -416,6 +416,10 @@ export default {
     this.listProjects()
   },
   methods: {
+    predictDropzoneFileAddedHandler(file) {
+      this.uploadImageToPredict(file)
+      this.showPredictLoading = true
+    },
     getSidebarText() {
       const { currentTab } = this
       if ((currentTab === 'label' && Object.values(this.currentImages).length === 0) || this.editMode) {
