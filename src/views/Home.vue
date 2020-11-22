@@ -114,7 +114,7 @@
                   //-   color="#8C98BF"
                   //-   v-if="currentImageBundle.status === 'UPLOADING_TO_BIGML' && (currentProject.status != null && currentProject.status !== 'READY')"
                   //- )
-            .sidebarSectionHeader(v-if="hasImages" style="max-height: 200px; min-height: 200px;")
+            .sidebarSectionHeader(v-if="hasImages" style="max-height: 200px; min-height: 200px; overflow-y: scroll")
               v-btn.sidebarButton(
                 :outlined="!editMode && shouldOutlineButton('all')"
                 @click="setCurrentFilter('all')"
@@ -242,7 +242,7 @@
                   )
               div(
                 style="height: 100%"
-                v-if="currentPredictedImage.status !== 'UPLOADING_TO_BIGML' && showPredictLoading"
+                v-if="currentPredictedImage.status !== 'READY' && showPredictLoading"
                 class="d-flex justify-center align-center flex-column"
               )
                 div(style="margin-bottom: 20px;") {{ $t('loadingDescription') }}
@@ -257,6 +257,8 @@
                 v-show="currentPredictedImage.status  === 'READY'"
               )
                 v-img(
+                  style="margin-top: 40px"
+                  contain
                   lazy-src
                   :src="currentPredictedImage.file"
                   max-width="500"
@@ -265,18 +267,20 @@
                 )
               .d-flex(
                 class="justify-center align center"
-                style="height: 100%; width: 100%; overflow-y: scroll"
+                style="height: 100%; overflow-x: scroll"
                 v-show="Object.values(currentPredictedImageList).length > 0"
               )
-                v-img(
-                  v-for="img in Object.values(currentPredictedImageList)"
-                  lazy-src
-                  :src="img.file"
-                  max-width="250"
-                  min-height="200"
-                  max-height="250"
-                  @click="currentPredictedImageIdFromList = img.id"
-                )
+                .imageContainer
+                  v-img(
+                    v-for="img in Object.values(currentPredictedImageList)"
+                    lazy-src
+                    contain
+                    :src="img.file"
+                    max-width="250"
+                    min-height="200"
+                    max-height="250"
+                    @click="currentPredictedImageIdFromList = img.id"
+                  )
                 //-   v-img.image(
                 //-     lazy-src
                 //-     :src="playedImages[0]"
@@ -598,7 +602,6 @@ export default {
       .sidebarSectionHeader {
         font-weight: bold;
         margin-top: 18px;
-        overflow-y: scroll;
 
         .sidebarTitle {
           margin-bottom: 18px;
