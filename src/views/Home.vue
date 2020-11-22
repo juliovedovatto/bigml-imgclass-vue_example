@@ -139,6 +139,7 @@
                   )
               v-btn.sidebarButton(
                 v-for="label in labels"
+                :key="label"
                 :outlined="!editMode && shouldOutlineButton(label)"
                 style="text-transform: capitalize;"
                 @click="setCurrentFilter(label)"
@@ -208,7 +209,7 @@
                         min-height="200"
                         max-height="250"
                       )
-                        .accuracy( :style="`background: linear-gradient(90deg, rgba(168, 201, 16, 1) ${Math.floor(img.label_probability * 100)}%, rgba(168, 201, 16, .6) ${Math.floor(img.label_probability * 100)}%);`" ) {{ img.predicted_label }}
+                        .accuracy( :style="`background: linear-gradient(90deg, rgba(168, 201, 16, 1) ${Math.floor(img.label_confidence * 100)}%, rgba(168, 201, 16, .6) ${Math.floor(img.label_confidence * 100)}%);`" ) {{ img.predicted_label }}
                   .d-flex(v-else class="justify-center align-center" style="height: 100%")
                     v-alert(color="primary" outlined v-if="currentFilter !== 'all'") {{ $t('noImagesWithLabel')}}
                       span(style="font-weight: bold; text-decoration: underline;") {{ currentFilter }}
@@ -225,7 +226,7 @@
                         min-height="200"
                         max-height="250"
                       )
-                        .accuracy( :style="`background: linear-gradient(90deg, rgba(239, 83, 80, 1) ${Math.floor(img.label_probability * 100)}%, rgba(239, 83, 80, .6) ${Math.floor(img.label_probability * 100)}%);`") {{ img.predicted_label }}
+                        .accuracy( :style="`background: linear-gradient(90deg, rgba(239, 83, 80, 1) ${Math.floor(img.label_confidence * 100)}%, rgba(239, 83, 80, .6) ${Math.floor(img.label_confidence * 100)}%);`") {{ img.predicted_label }}
                   .d-flex(v-else class="justify-center align-center" style="height: 100%")
                     v-alert(color="primary" outlined v-if="currentFilter !== 'all'") {{ $t('noImagesWithLabel')}}
                       span(style="font-weight: bold; text-decoration: underline;") {{ currentFilter }}
@@ -266,7 +267,7 @@
                     min-height="200"
                     max-height="500"
                   )
-                    .accuracy( :style="`background: linear-gradient(90deg, rgba(168, 201, 16, 1) ${Math.floor(currentPredictedImage.label_probability * 100)}%, rgba(168, 201, 16, .6) ${Math.floor(currentPredictedImage.label_probability * 100)}%);`" ) {{ currentPredictedImage.predicted_label }}
+                    .accuracy( :style="`background: linear-gradient(90deg, rgba(168, 201, 16, 1) ${Math.floor(currentPredictedImage.label_confidence * 100)}%, rgba(168, 201, 16, .6) ${Math.floor(currentPredictedImage.label_confidence * 100)}%);`" ) {{ currentPredictedImage.predicted_label }}
                     div(style="position: absolute; top: 10px; right: 10px")
                       v-btn(
                         fab
@@ -291,7 +292,7 @@
                     max-height="250"
                     @click="$store.dispatch('project/setCurrentPredictedImageFromList', img.id)"
                   )
-                    .accuracy( :style="`background: linear-gradient(90deg, rgba(168, 201, 16, 1) ${Math.floor(img.label_probability * 100)}%, rgba(168, 201, 16, .6) ${Math.floor(img.label_probability * 100)}%);`" ) {{ img.predicted_label }}
+                    .accuracy( :style="`background: linear-gradient(90deg, rgba(168, 201, 16, 1) ${Math.floor(img.label_confidence * 100)}%, rgba(168, 201, 16, .6) ${Math.floor(img.label_confidence * 100)}%);`" ) {{ img.predicted_label }}
 </template>
 
 <script>
